@@ -36,6 +36,13 @@ function ProtectedRoute({ children }) {
   return children;
 }
 
+function AdminRoute({ children }) {
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  if (!user || user.role !== 'admin') return <Navigate to="/" replace />;
+  return children;
+}
+
 function App() {
   return (
     <AuthProvider>
@@ -51,15 +58,15 @@ function App() {
             <Route path="timetable" element={<TimetablePage />} />
             <Route path="grades" element={<GradesPage />} />
             <Route path="homework" element={<HomeworkPage />} />
-            <Route path="fees" element={<FeeManagementPage />} />
-            <Route path="fee-structure" element={<FeeStructurePage />} />
-            <Route path="staff" element={<StaffPage />} />
-            <Route path="payroll" element={<PayrollPage />} />
+            <Route path="fees" element={<AdminRoute><FeeManagementPage /></AdminRoute>} />
+            <Route path="fee-structure" element={<AdminRoute><FeeStructurePage /></AdminRoute>} />
+            <Route path="staff" element={<AdminRoute><StaffPage /></AdminRoute>} />
+            <Route path="payroll" element={<AdminRoute><PayrollPage /></AdminRoute>} />
             <Route path="communication" element={<CommunicationPage />} />
             <Route path="transport" element={<TransportPage />} />
             <Route path="library" element={<LibraryPage />} />
-            <Route path="reports" element={<ReportsPage />} />
-            <Route path="settings" element={<SettingsPage />} />
+            <Route path="reports" element={<AdminRoute><ReportsPage /></AdminRoute>} />
+            <Route path="settings" element={<AdminRoute><SettingsPage /></AdminRoute>} />
           </Route>
         </Routes>
       </BrowserRouter>

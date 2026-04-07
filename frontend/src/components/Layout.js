@@ -10,27 +10,30 @@ import {
 const SCHOOL_LOGO = "https://customer-assets.emergentagent.com/job_school-hub-495/artifacts/ud1nrved_17104.jpg";
 
 const navItems = [
-  { to: "/", icon: LayoutDashboard, label: "Dashboard" },
-  { to: "/students", icon: Users, label: "Students" },
-  { to: "/attendance", icon: ClipboardCheck, label: "Attendance" },
-  { to: "/timetable", icon: Calendar, label: "Timetable" },
-  { to: "/grades", icon: GraduationCap, label: "Grades & Exams" },
-  { to: "/homework", icon: BookOpen, label: "Homework" },
-  { to: "/fees", icon: DollarSign, label: "Fee Management" },
-  { to: "/fee-structure", icon: CreditCard, label: "Fee Structure" },
-  { to: "/staff", icon: UserCog, label: "Staff & HR" },
-  { to: "/payroll", icon: Wallet, label: "Payroll" },
-  { to: "/communication", icon: MessageSquare, label: "Communication" },
-  { to: "/transport", icon: Bus, label: "Transport" },
-  { to: "/library", icon: Library, label: "Library" },
-  { to: "/reports", icon: BarChart3, label: "Reports" },
-  { to: "/settings", icon: Settings, label: "Settings" },
+  { to: "/", icon: LayoutDashboard, label: "Dashboard", roles: ["admin", "teacher"] },
+  { to: "/students", icon: Users, label: "Students", roles: ["admin", "teacher"] },
+  { to: "/attendance", icon: ClipboardCheck, label: "Attendance", roles: ["admin", "teacher"] },
+  { to: "/timetable", icon: Calendar, label: "Timetable", roles: ["admin", "teacher"] },
+  { to: "/grades", icon: GraduationCap, label: "Grades & Exams", roles: ["admin", "teacher"] },
+  { to: "/homework", icon: BookOpen, label: "Homework", roles: ["admin", "teacher"] },
+  { to: "/fees", icon: DollarSign, label: "Fee Management", roles: ["admin"] },
+  { to: "/fee-structure", icon: CreditCard, label: "Fee Structure", roles: ["admin"] },
+  { to: "/staff", icon: UserCog, label: "Staff & HR", roles: ["admin"] },
+  { to: "/payroll", icon: Wallet, label: "Payroll", roles: ["admin"] },
+  { to: "/communication", icon: MessageSquare, label: "Communication", roles: ["admin", "teacher"] },
+  { to: "/transport", icon: Bus, label: "Transport", roles: ["admin", "teacher"] },
+  { to: "/library", icon: Library, label: "Library", roles: ["admin", "teacher"] },
+  { to: "/reports", icon: BarChart3, label: "Reports", roles: ["admin"] },
+  { to: "/settings", icon: Settings, label: "Settings", roles: ["admin"] },
 ];
 
 export default function Layout() {
   const { user, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
+  const userRole = user?.role || 'teacher';
+
+  const filteredNavItems = navItems.filter(n => n.roles.includes(userRole));
 
   const pageTitle = navItems.find(n => {
     if (n.to === "/") return location.pathname === "/";
@@ -60,7 +63,7 @@ export default function Layout() {
 
         {/* Nav */}
         <nav className="flex-1 overflow-y-auto py-3 px-2 space-y-0.5" data-testid="sidebar-nav">
-          {navItems.map(({ to, icon: Icon, label }) => (
+          {filteredNavItems.map(({ to, icon: Icon, label }) => (
             <NavLink
               key={to}
               to={to}

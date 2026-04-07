@@ -70,6 +70,12 @@ async def get_current_user(request: Request) -> dict:
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid token")
 
+async def require_admin(request: Request) -> dict:
+    user = await get_current_user(request)
+    if user.get("role") != "admin":
+        raise HTTPException(status_code=403, detail="Admin access required")
+    return user
+
 def clean_mongo_doc(doc):
     """Recursively convert all ObjectId instances to strings in a document."""
     if doc is None:
@@ -303,7 +309,7 @@ async def get_student(student_id: str):
     return result
 
 @api_router.post("/students")
-async def create_student(data: StudentCreate):
+async def create_student(data: StudentCreate, admin: dict = Depends(require_admin)):
     doc = data.model_dump()
     doc["created_at"] = datetime.now(timezone.utc).isoformat()
     doc["id"] = str(uuid.uuid4())
@@ -318,7 +324,7 @@ async def update_student(student_id: str, data: dict):
     return serialize_doc(updated)
 
 @api_router.delete("/students/{student_id}")
-async def delete_student(student_id: str):
+async def delete_student(student_id: str, admin: dict = Depends(require_admin)):
     await db.students.delete_one({"_id": ObjectId(student_id)})
     return {"message": "Student deleted"}
 
@@ -447,7 +453,7 @@ async def get_fee_payments(class_name: str = "", status: str = ""):
     return serialize_docs(payments)
 
 @api_router.post("/fees/collect")
-async def collect_fee(data: FeeCollect):
+async def collect_fee(data: FeeCollect, admin: dict = Depends(require_admin)):
     doc = data.model_dump()
     doc["status"] = "Paid"
     doc["receipt_no"] = f"RCP-{uuid.uuid4().hex[:8].upper()}"
@@ -480,7 +486,7 @@ async def get_staff(search: str = "", department: str = ""):
     return serialize_docs(staff)
 
 @api_router.post("/staff")
-async def create_staff(data: StaffCreate):
+async def create_staff(data: StaffCreate, admin: dict = Depends(require_admin)):
     doc = data.model_dump()
     doc["created_at"] = datetime.now(timezone.utc).isoformat()
     result = await db.staff.insert_one(doc)
@@ -494,7 +500,7 @@ async def update_staff(staff_id: str, data: dict):
     return serialize_doc(updated)
 
 @api_router.delete("/staff/{staff_id}")
-async def delete_staff(staff_id: str):
+async def delete_staff(staff_id: str, admin: dict = Depends(require_admin)):
     await db.staff.delete_one({"_id": ObjectId(staff_id)})
     return {"message": "Staff deleted"}
 
@@ -508,7 +514,7 @@ async def get_payroll(month: str = ""):
     return serialize_docs(payroll)
 
 @api_router.post("/payroll/process")
-async def process_payroll(data: dict):
+async def process_payroll(data: dict, admin: dict = Depends(require_admin)):
     month = data.get("month", datetime.now(timezone.utc).strftime("%Y-%m"))
     staff_list = await db.staff.find({}).to_list(1000)
     processed = []
@@ -707,7 +713,7 @@ async def get_settings():
     return settings
 
 @api_router.put("/settings")
-async def update_settings(data: dict):
+async def update_settings(data: dict, admin: dict = Depends(require_admin)):
     data.pop("_id", None)
     data.pop("type", None)
     await db.settings.update_one({"type": "school"}, {"$set": data}, upsert=True)
