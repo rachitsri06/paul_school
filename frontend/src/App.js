@@ -6,6 +6,7 @@ import { Toaster } from "@/components/ui/sonner";
 import Layout from "@/components/Layout";
 import LoginPage from "@/pages/LoginPage";
 import DashboardPage from "@/pages/DashboardPage";
+import ParentDashboardPage from "@/pages/ParentDashboardPage";
 import StudentsPage from "@/pages/StudentsPage";
 import StudentProfilePage from "@/pages/StudentProfilePage";
 import AttendancePage from "@/pages/AttendancePage";
@@ -43,6 +44,12 @@ function AdminRoute({ children }) {
   return children;
 }
 
+function SmartDashboard() {
+  const { user } = useAuth();
+  if (user?.role === 'parent') return <ParentDashboardPage />;
+  return <DashboardPage />;
+}
+
 function App() {
   return (
     <AuthProvider>
@@ -51,7 +58,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-            <Route index element={<DashboardPage />} />
+            <Route index element={<SmartDashboard />} />
             <Route path="students" element={<StudentsPage />} />
             <Route path="students/:id" element={<StudentProfilePage />} />
             <Route path="attendance" element={<AttendancePage />} />

@@ -202,6 +202,122 @@ class AIReportRequest(BaseModel):
     report_type: str
     context: str = ""
 
+# ── PARENT ROUTES ──
+@api_router.get("/parent/children")
+async def get_parent_children(request: Request):
+    user = await get_current_user(request)
+    if user.get("role") != "parent":
+        raise HTTPException(status_code=403, detail="Parent access required")
+    children_ids = user.get("children_ids", [])
+    if not children_ids:
+        return []
+    children = []
+    for cid in children_ids:
+        try:
+            student = await db.students.find_one({"_id": ObjectId(cid)})
+            if student:
+                children.append(clean_mongo_doc(student))
+        except Exception:
+            pass
+    return children
+
+@api_router.get("/parent/child/{child_id}")
+async def get_parent_child_detail(child_id: str, request: Request):
+    user = await get_current_user(request)
+    if user.get("role") != "parent":
+        raise HTTPException(status_code=403, detail="Parent access required")
+    children_ids = user.get("children_ids", [])
+    if child_id not in children_ids:
+        raise HTTPException(status_code=403, detail="Not your child")
+    student = await db.students.find_one({"_id": ObjectId(child_id)})
+    if not student:
+        raise HTTPException(status_code=404, detail="Student not found")
+    result = clean_mongo_doc(student)
+    result["attendance_history"] = await db.attendance.find({"student_id": child_id}, {"_id": 0}).to_list(1000)
+    result["fee_history"] = await db.fee_payments.find({"student_id": child_id}, {"_id": 0}).to_list(1000)
+    result["grades"] = await db.grades.find({"student_id": child_id}, {"_id": 0}).to_list(1000)
+    return result
+
+@api_router.get("/parent/child/{child_id}/attendance")
+async def get_parent_child_attendance(child_id: str, request: Request):
+    user = await get_current_user(request)
+    if user.get("role") != "parent":
+        raise HTTPException(status_code=403, detail="Parent access required")
+    if child_id not in user.get("children_ids", []):
+        raise HTTPException(status_code=403, detail="Not your child")
+    records = await db.attendance.find({"student_id": child_id}, {"_id": 0}).sort("date", -1).to_list(1000)
+    return records
+
+@api_router.get("/parent/child/{child_id}/grades")
+async def get_parent_child_grades(child_id: str, request: Request):
+    user = await get_current_user(request)
+    if user.get("role") != "parent":
+        raise HTTPException(status_code=403, detail="Parent access required")
+    if child_id not in user.get("children_ids", []):
+        raise HTTPException(status_code=403, detail="Not your child")
+    grades = await db.grades.find({"student_id": child_id}, {"_id": 0}).to_list(1000)
+    return grades
+
+@api_router.get("/parent/child/{child_id}/fees")
+async def get_parent_child_fees(child_id: str, request: Request):
+    user = await get_current_user(request)
+    if user.get("role") != "parent":
+        raise HTTPException(status_code=403, detail="Parent access required")
+    if child_id not in user.get("children_ids", []):
+        raise HTTPException(status_code=403, detail="Not your child")
+    fees = await db.fee_payments.find({"student_id": child_id}, {"_id": 0}).to_list(1000)
+    return fees
+
+@api_router.get("/parent/homework")
+async def get_parent_homework(request: Request):
+    user = await get_current_user(request)
+    if user.get("role") != "parent":
+        raise HTTPException(status_code=403, detail="Parent access required")
+    children_ids = user.get("children_ids", [])
+    # Get classes of children
+    classes = set()
+    for cid in children_ids:
+        try:
+            student = await db.students.find_one({"_id": ObjectId(cid)}, {"class_name": 1, "section": 1})
+            if student:
+                classes.add((student["class_name"], student.get("section", "")))
+        except Exception:
+            pass
+    if not classes:
+        return []
+    query_or = [{"class_name": c, "section": s} for c, s in classes]
+    homework = await db.homework.find({"$or": query_or}).to_list(1000)
+    return serialize_docs(homework)
+
+@api_router.get("/parent/notices")
+async def get_parent_notices(request: Request):
+    user = await get_current_user(request)
+    if user.get("role") != "parent":
+        raise HTTPException(status_code=403, detail="Parent access required")
+    notices = await db.communications.find(
+        {"$or": [{"type": "notice"}, {"recipients": {"$regex": "Parent|All", "$options": "i"}}]}
+    ).sort("created_at", -1).to_list(100)
+    return serialize_docs(notices)
+
+@api_router.get("/parent/transport")
+async def get_parent_transport(request: Request):
+    user = await get_current_user(request)
+    if user.get("role") != "parent":
+        raise HTTPException(status_code=403, detail="Parent access required")
+    children_ids = user.get("children_ids", [])
+    routes_set = set()
+    for cid in children_ids:
+        try:
+            student = await db.students.find_one({"_id": ObjectId(cid)}, {"transport_route": 1})
+            if student and student.get("transport_route"):
+                routes_set.add(student["transport_route"])
+        except Exception:
+            pass
+    if not routes_set:
+        return []
+    routes = await db.transport_routes.find({"route_name": {"$in": list(routes_set)}}, {"_id": 0}).to_list(100)
+    return routes
+
 # ── AUTH ROUTES ──
 @api_router.post("/auth/login")
 async def login(data: AuthLogin, response: Response):
@@ -216,7 +332,7 @@ async def login(data: AuthLogin, response: Response):
     refresh = create_refresh_token(uid)
     response.set_cookie(key="access_token", value=access, httponly=True, secure=False, samesite="lax", max_age=7200, path="/")
     response.set_cookie(key="refresh_token", value=refresh, httponly=True, secure=False, samesite="lax", max_age=604800, path="/")
-    return {"id": uid, "email": user["email"], "name": user.get("name", ""), "role": user.get("role", ""), "token": access}
+    return {"id": uid, "email": user["email"], "name": user.get("name", ""), "role": user.get("role", ""), "token": access, "children_ids": user.get("children_ids", [])}
 
 @api_router.post("/auth/register")
 async def register(data: AuthRegister, response: Response):
@@ -932,10 +1048,36 @@ async def seed_data():
         await db.communications.insert_many(comms)
         logger.info("Communications seeded")
 
+    # Seed parent accounts (linked to students)
+    if await db.users.count_documents({"role": "parent"}) == 0:
+        all_students = await db.students.find({}).to_list(100)
+        student_by_name = {s["name"]: str(s["_id"]) for s in all_students}
+        # Parent 1: Rajesh Sharma - father of Aarav Sharma (Class 10-A)
+        parent1_children = [student_by_name.get("Aarav Sharma")]
+        # Parent 2: Deepak Mishra - father of Kunal Mishra (Class 9-A) AND Sneha Pandey's guardian
+        parent2_children = [student_by_name.get("Kunal Mishra"), student_by_name.get("Sneha Pandey")]
+        # Parent 3: Alok Tiwari - father of Ishita Tiwari (Class 8-A) AND Vivek Yadav's guardian
+        parent3_children = [student_by_name.get("Ishita Tiwari"), student_by_name.get("Vivek Yadav")]
+        # Parent 4: Vinod Dubey - father of Rahul Dubey (Class 7-A)
+        parent4_children = [student_by_name.get("Rahul Dubey")]
+
+        parents = [
+            {"email": "rajesh.sharma@stpauls.edu", "password_hash": hash_password("parent123"), "name": "Mr. Rajesh Sharma", "role": "parent", "children_ids": [c for c in parent1_children if c], "phone": "9876543201", "created_at": datetime.now(timezone.utc).isoformat()},
+            {"email": "deepak.mishra@stpauls.edu", "password_hash": hash_password("parent123"), "name": "Mr. Deepak Mishra", "role": "parent", "children_ids": [c for c in parent2_children if c], "phone": "9876543205", "created_at": datetime.now(timezone.utc).isoformat()},
+            {"email": "alok.tiwari@stpauls.edu", "password_hash": hash_password("parent123"), "name": "Mr. Alok Tiwari", "role": "parent", "children_ids": [c for c in parent3_children if c], "phone": "9876543208", "created_at": datetime.now(timezone.utc).isoformat()},
+            {"email": "vinod.dubey@stpauls.edu", "password_hash": hash_password("parent123"), "name": "Mr. Vinod Dubey", "role": "parent", "children_ids": [c for c in parent4_children if c], "phone": "9876543211", "created_at": datetime.now(timezone.utc).isoformat()},
+        ]
+        for p in parents:
+            try:
+                await db.users.insert_one(p)
+            except Exception:
+                pass
+        logger.info("4 parent accounts seeded")
+
     # Write test credentials
     os.makedirs("/app/memory", exist_ok=True)
     with open("/app/memory/test_credentials.md", "w") as f:
-        f.write(f"# Test Credentials\n\n## Admin\n- Email: {admin_email}\n- Password: {admin_password}\n- Role: admin\n\n## Auth Endpoints\n- POST /api/auth/login\n- POST /api/auth/register\n- GET /api/auth/me\n- POST /api/auth/logout\n")
+        f.write(f"# Test Credentials\n\n## Admin\n- Email: {admin_email}\n- Password: {admin_password}\n- Role: admin\n\n## Teacher\n- Email: teacher@stpauls.edu\n- Password: teacher123\n- Role: teacher\n\n## Parents (password: parent123 for all)\n- rajesh.sharma@stpauls.edu - Father of Aarav Sharma (Class 10-A)\n- deepak.mishra@stpauls.edu - Father of Kunal Mishra (9-A) & Sneha Pandey (9-A) [2 children]\n- alok.tiwari@stpauls.edu - Father of Ishita Tiwari (8-A) & Vivek Yadav (8-A) [2 children]\n- vinod.dubey@stpauls.edu - Father of Rahul Dubey (7-A)\n\n## Auth Endpoints\n- POST /api/auth/login\n- POST /api/auth/register\n- GET /api/auth/me\n- POST /api/auth/logout\n")
 
 
 @app.on_event("startup")

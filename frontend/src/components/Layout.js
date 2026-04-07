@@ -10,7 +10,7 @@ import {
 const SCHOOL_LOGO = "https://customer-assets.emergentagent.com/job_school-hub-495/artifacts/ud1nrved_17104.jpg";
 
 const navItems = [
-  { to: "/", icon: LayoutDashboard, label: "Dashboard", roles: ["admin", "teacher"] },
+  { to: "/", icon: LayoutDashboard, label: "Dashboard", roles: ["admin", "teacher", "parent"] },
   { to: "/students", icon: Users, label: "Students", roles: ["admin", "teacher"] },
   { to: "/attendance", icon: ClipboardCheck, label: "Attendance", roles: ["admin", "teacher"] },
   { to: "/timetable", icon: Calendar, label: "Timetable", roles: ["admin", "teacher"] },
