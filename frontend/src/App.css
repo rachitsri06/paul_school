@@ -1,34 +1,15 @@
-.App-logo {
-    height: 40vmin;
-    pointer-events: none;
+/* App.css - minimal, most styling via Tailwind */
+.sidebar-link {
+  @apply flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors duration-150;
+}
+.sidebar-link:hover {
+  @apply bg-slate-800;
+}
+.sidebar-link.active {
+  @apply bg-blue-900 text-white;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-    .App-logo {
-        animation: App-logo-spin infinite 20s linear;
-    }
-}
-
-.App-header {
-    background-color: #0f0f10;
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    font-size: calc(10px + 2vmin);
-    color: white;
-}
-
-.App-link {
-    color: #61dafb;
-}
-
-@keyframes App-logo-spin {
-    from {
-        transform: rotate(0deg);
-    }
-    to {
-        transform: rotate(360deg);
-    }
+@media print {
+  .print-hidden { display: none !important; }
+  .print-full-width { width: 100% !important; max-width: 100% !important; padding: 0 !important; margin: 0 !important; }
 }
