@@ -1,0 +1,133 @@
+{
+  "theme": "LIGHT",
+  "archetype": "4 (Swiss & High-Contrast)",
+  "rationale": "For a comprehensive School Management System (dashboard), prioritizing Authority, Clarity, and Functionality. The design blends the Swiss & High-Contrast archetype with a professional navy blue and white aesthetic inspired by the school's logo. It ensures readability and dense data presentation without clutter.",
+  "colors": {
+    "background": {
+      "default": "#f8fafc",
+      "surface": "#ffffff",
+      "surface_alt": "#f1f5f9"
+    },
+    "primary": {
+      "default": "#1e3a8a",
+      "hover": "#1e40af",
+      "light": "#dbeafe",
+      "text": "#ffffff"
+    },
+    "secondary": {
+      "default": "#0f172a",
+      "text": "#f8fafc"
+    },
+    "accent": {
+      "blue": "#0ea5e9",
+      "gold": "#f59e0b",
+      "success": "#10b981",
+      "danger": "#ef4444"
+    },
+    "text": {
+      "primary": "#0f172a",
+      "secondary": "#475569",
+      "muted": "#94a3b8"
+    },
+    "border": {
+      "default": "#e2e8f0",
+      "focus": "#1e3a8a"
+    }
+  },
+  "typography": {
+    "fonts": {
+      "heading": "Manrope, sans-serif",
+      "body": "IBM Plex Sans, sans-serif",
+      "mono": "JetBrains Mono, monospace"
+    },
+    "sizes": {
+      "h1": "text-3xl sm:text-4xl lg:text-5xl tracking-tight font-black text-slate-900",
+      "h2": "text-2xl sm:text-3xl tracking-tight font-bold text-slate-900",
+      "h3": "text-xl sm:text-2xl font-bold text-slate-800",
+      "h4": "text-lg sm:text-xl font-semibold text-slate-800",
+      "body": "text-sm sm:text-base text-slate-600 leading-relaxed",
+      "small": "text-sm text-slate-500",
+      "label": "text-xs uppercase tracking-[0.2em] font-semibold text-slate-500"
+    }
+  },
+  "spacing_and_layout": {
+    "strategy": "The 'Control Room' Grid",
+    "base_grid": "grid-cols-1 md:grid-cols-3 lg:grid-cols-4 lg:grid-cols-12",
+    "gap": "gap-4 sm:gap-6",
+    "container": "max-w-7xl mx-auto p-4 sm:p-6 lg:p-8",
+    "card_padding": "p-5 sm:p-6",
+    "component_spacing": "space-y-6 sm:space-y-8"
+  },
+  "surface_styles": {
+    "dashboard_cards": "bg-white border border-slate-200 rounded-lg shadow-sm hover:shadow-md transition-shadow duration-200",
+    "header_nav": "bg-white/90 backdrop-blur-xl border-b border-slate-200 sticky top-0 z-50",
+    "sidebar": "bg-slate-900 text-slate-100 border-r border-slate-800",
+    "modals": "bg-white rounded-xl shadow-2xl border border-slate-100",
+    "tables": "w-full text-sm text-left text-slate-600 border-collapse"
+  },
+  "components": {
+    "buttons": {
+      "primary": "bg-blue-900 hover:bg-blue-800 text-white font-medium rounded-md px-4 py-2 transition-colors",
+      "secondary": "bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-medium rounded-md px-4 py-2 transition-colors",
+      "danger": "bg-red-500 hover:bg-red-600 text-white font-medium rounded-md px-4 py-2 transition-colors"
+    },
+    "inputs": "bg-white border border-slate-300 text-slate-900 text-sm rounded-md focus:ring-2 focus:ring-blue-900 focus:border-transparent block w-full p-2.5",
+    "badges": {
+      "success": "bg-emerald-100 text-emerald-800 text-xs font-semibold px-2.5 py-0.5 rounded border border-emerald-200",
+      "warning": "bg-amber-100 text-amber-800 text-xs font-semibold px-2.5 py-0.5 rounded border border-amber-200",
+      "danger": "bg-red-100 text-red-800 text-xs font-semibold px-2.5 py-0.5 rounded border border-red-200",
+      "info": "bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded border border-blue-200"
+    }
+  },
+  "motion_and_interactions": {
+    "hover": "Subtle translate-y-[-2px] and shadow elevation for interactive cards.",
+    "focus": "High contrast ring (focus:ring-2 focus:ring-blue-900 focus:ring-offset-1).",
+    "transitions": "transition-all duration-200 ease-in-out",
+    "modals": "Scale-in and fade-in animations."
+  },
+  "accessibility": {
+    "contrast": "All text meets WCAG AA standards. Interactive elements have distinct hover/focus states.",
+    "attributes": "Use data-testid attributes for all interactive elements (e.g., data-testid='student-search-input').",
+    "motion": "Respect prefers-reduced-motion media queries."
+  },
+  "media": {
+    "images": {
+      "logo": {
+        "url": "https://customer-assets.emergentagent.com/job_school-hub-495/artifacts/ud1nrved_17104.jpg",
+        "description": "St. Paul's School Logo",
+        "usage": "Main navigation header, login screen, and print reports header."
+      },
+      "student_avatars": [
+        {
+          "url": "https://images.unsplash.com/photo-1544717305-2782549b5136?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1MDZ8MHwxfHNlYXJjaHwyfHxzdHVkZW50JTIwcG9ydHJhaXR8ZW58MHx8fHwxNzc1NTQxMTg2fDA&ixlib=rb-4.1.0&q=85",
+          "description": "Female student portrait",
+          "usage": "Placeholder for female student profiles."
+        },
+        {
+          "url": "https://images.unsplash.com/photo-1529068755536-a5ade0dcb4e8?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjA1MDZ8MHwxfHNlYXJjaHwxfHxzdHVkZW50JTIwcG9ydHJhaXR8ZW58MHx8fHwxNzc1NTQxMTg2fDA&ixlib=rb-4.1.0&q=85",
+          "description": "Male student portrait",
+          "usage": "Placeholder for male student profiles."
+        },
+        {
+          "url": "https://images.pexels.com/photos/6281951/pexels-photo-6281951.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+          "description": "Student indoors with backpack",
+          "usage": "General student imagery or generic avatar."
+        }
+      ]
+    },
+    "icons": {
+      "library": "lucide-react",
+      "usage": "Use consistently for sidebar navigation, action buttons, and status indicators. Size 18-20px for inline text, 24px for sidebar icons."
+    }
+  },
+  "instructions_to_main_agent": [
+    "Strictly follow the Navy Blue (#1e3a8a) and White/Slate color palette to maintain the professional, traditional educational aesthetic.",
+    "Use 'lucide-react' for all icons.",
+    "Implement Shadcn UI components for Tables, Dialogs (Modals), Select, and Dropdowns, but override default stylings to match the 'surface_styles' defined here.",
+    "For Print Support, use Tailwind's 'print:' variant classes to hide navigation (print:hidden) and ensure tables and reports occupy the full width with a white background (print:bg-white).",
+    "All interactive elements MUST have 'data-testid' attributes (e.g., data-testid='enroll-student-btn').",
+    "Use Sonner for toast notifications (e.g., successful fee payment, attendance marked).",
+    "Ensure the layout is highly dense but readable ('Control Room' grid pattern), maximizing vertical space without feeling cluttered.",
+    "Support standard keyboard interactions (e.g., Escape to close modals)."
+  ]
+}
