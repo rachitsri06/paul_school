@@ -70,14 +70,33 @@ async def get_current_user(request: Request) -> dict:
     except jwt.InvalidTokenError:
         raise HTTPException(status_code=401, detail="Invalid token")
 
-def serialize_doc(doc):
+def clean_mongo_doc(doc):
+    """Recursively convert all ObjectId instances to strings in a document."""
     if doc is None:
         return None
-    doc["_id"] = str(doc["_id"])
+    if isinstance(doc, list):
+        return [clean_mongo_doc(item) for item in doc]
+    if isinstance(doc, dict):
+        cleaned = {}
+        for key, value in doc.items():
+            if isinstance(value, ObjectId):
+                cleaned[key] = str(value)
+            elif isinstance(value, dict):
+                cleaned[key] = clean_mongo_doc(value)
+            elif isinstance(value, list):
+                cleaned[key] = clean_mongo_doc(value)
+            else:
+                cleaned[key] = value
+        return cleaned
+    if isinstance(doc, ObjectId):
+        return str(doc)
     return doc
 
+def serialize_doc(doc):
+    return clean_mongo_doc(doc)
+
 def serialize_docs(docs):
-    return [serialize_doc(d) for d in docs]
+    return [clean_mongo_doc(d) for d in docs]
 
 # ── Pydantic Models ──
 class AuthLogin(BaseModel):
@@ -289,8 +308,7 @@ async def create_student(data: StudentCreate):
     doc["created_at"] = datetime.now(timezone.utc).isoformat()
     doc["id"] = str(uuid.uuid4())
     result = await db.students.insert_one(doc)
-    doc["_id"] = str(result.inserted_id)
-    return doc
+    return clean_mongo_doc(doc)
 
 @api_router.put("/students/{student_id}")
 async def update_student(student_id: str, data: dict):
@@ -403,8 +421,7 @@ async def create_homework(data: HomeworkCreate):
     doc["created_at"] = datetime.now(timezone.utc).isoformat()
     doc["submissions"] = 0
     result = await db.homework.insert_one(doc)
-    doc["_id"] = str(result.inserted_id)
-    return doc
+    return clean_mongo_doc(doc)
 
 @api_router.put("/homework/{hw_id}")
 async def update_homework(hw_id: str, data: dict):
@@ -436,8 +453,7 @@ async def collect_fee(data: FeeCollect):
     doc["receipt_no"] = f"RCP-{uuid.uuid4().hex[:8].upper()}"
     doc["collected_at"] = datetime.now(timezone.utc).isoformat()
     result = await db.fee_payments.insert_one(doc)
-    doc["_id"] = str(result.inserted_id)
-    return doc
+    return clean_mongo_doc(doc)
 
 @api_router.get("/fees/structure")
 async def get_fee_structure():
@@ -468,8 +484,7 @@ async def create_staff(data: StaffCreate):
     doc = data.model_dump()
     doc["created_at"] = datetime.now(timezone.utc).isoformat()
     result = await db.staff.insert_one(doc)
-    doc["_id"] = str(result.inserted_id)
-    return doc
+    return clean_mongo_doc(doc)
 
 @api_router.put("/staff/{staff_id}")
 async def update_staff(staff_id: str, data: dict):
@@ -519,8 +534,7 @@ async def process_payroll(data: dict):
             "processed_at": datetime.now(timezone.utc).isoformat()
         }
         result = await db.payroll.insert_one(doc)
-        doc["_id"] = str(result.inserted_id)
-        processed.append(doc)
+        processed.append(clean_mongo_doc(doc))
     return {"message": f"Payroll processed for {len(processed)} staff", "records": processed}
 
 # ── COMMUNICATION ──
@@ -538,8 +552,7 @@ async def create_communication(data: CommunicationCreate):
     doc["created_at"] = datetime.now(timezone.utc).isoformat()
     doc["status"] = "Sent"
     result = await db.communications.insert_one(doc)
-    doc["_id"] = str(result.inserted_id)
-    return doc
+    return clean_mongo_doc(doc)
 
 # ── TRANSPORT ──
 @api_router.get("/transport/routes")
@@ -575,8 +588,7 @@ async def add_book(data: BookCreate):
     doc = data.model_dump()
     doc["created_at"] = datetime.now(timezone.utc).isoformat()
     result = await db.library_books.insert_one(doc)
-    doc["_id"] = str(result.inserted_id)
-    return doc
+    return clean_mongo_doc(doc)
 
 @api_router.get("/library/issued")
 async def get_issued_books():
@@ -589,10 +601,8 @@ async def issue_book(data: BookIssue):
     doc["status"] = "Issued"
     doc["created_at"] = datetime.now(timezone.utc).isoformat()
     result = await db.library_issued.insert_one(doc)
-    doc["_id"] = str(result.inserted_id)
-    # Update available copies
     await db.library_books.update_one({"_id": ObjectId(data.book_id)}, {"$inc": {"available_copies": -1}})
-    return doc
+    return clean_mongo_doc(doc)
 
 @api_router.post("/library/return/{issue_id}")
 async def return_book(issue_id: str):
@@ -611,15 +621,15 @@ async def get_report(report_type: str, class_name: str = "", month: str = ""):
         if class_name:
             pipeline.insert(0, {"$match": {"class_name": class_name}})
         result = await db.attendance.aggregate(pipeline).to_list(1000)
-        return result
+        return clean_mongo_doc(result)
     elif report_type == "fee_collection":
         pipeline = [{"$group": {"_id": "$class_name", "total": {"$sum": "$amount"}, "count": {"$sum": 1}}}]
         result = await db.fee_payments.aggregate(pipeline).to_list(100)
-        return result
+        return clean_mongo_doc(result)
     elif report_type == "student_strength":
         pipeline = [{"$group": {"_id": {"class_name": "$class_name", "section": "$section"}, "count": {"$sum": 1}}}]
         result = await db.students.aggregate(pipeline).to_list(100)
-        return result
+        return clean_mongo_doc(result)
     elif report_type == "exam_results":
         grades = await db.grades.find({}, {"_id": 0}).to_list(10000)
         return grades
