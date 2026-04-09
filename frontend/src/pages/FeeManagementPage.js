@@ -92,7 +92,17 @@ export default function FeeManagementPage() {
                   <td className="px-4 py-3"><span className="bg-emerald-100 text-emerald-800 text-xs font-semibold px-2 py-0.5 rounded border border-emerald-200">{p.status}</span></td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <button onClick={() => { toast.info('SMS reminder sent (mocked)'); }} className="text-blue-600 hover:text-blue-800" data-testid={`remind-${p.receipt_no}`}><Bell size={14} /></button>
+                      <button onClick={async () => {
+                        try {
+                          const { data } = await axios.post(`${API}/api/notifications/send`, {
+                            type: 'sms',
+                            phone: students.find(s => s._id === p.student_id)?.phone || '',
+                            message: `Dear Parent, this is a fee payment reminder for ${p.student_name} (Class ${p.class_name}). Amount: Rs ${p.amount}. Please clear at the earliest. - St. Paul's School`
+                          }, { headers: headers() });
+                          if (data.success) toast.success(`SMS reminder sent to ${p.student_name}'s parent`);
+                          else toast.error(`SMS failed: ${data.error}`);
+                        } catch { toast.error('Failed to send SMS'); }
+                      }} className="text-blue-600 hover:text-blue-800" data-testid={`remind-${p.receipt_no}`}><Bell size={14} /></button>
                       <button onClick={() => window.print()} className="text-slate-500 hover:text-slate-700" data-testid={`print-${p.receipt_no}`}><Printer size={14} /></button>
                     </div>
                   </td>

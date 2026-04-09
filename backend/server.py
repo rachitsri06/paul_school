@@ -17,6 +17,7 @@ from datetime import datetime, timezone, timedelta
 from pydantic import BaseModel, Field
 from typing import List, Optional
 from bson import ObjectId
+from twilio.rest import Client as TwilioClient
 
 # MongoDB
 mongo_url = os.environ['MONGO_URL']
@@ -30,6 +31,48 @@ JWT_ALGORITHM = "HS256"
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
+
+# ── Twilio Setup ──
+def get_twilio_client():
+    sid = os.environ.get("TWILIO_ACCOUNT_SID", "")
+    token = os.environ.get("TWILIO_AUTH_TOKEN", "")
+    if sid and token:
+        return TwilioClient(sid, token)
+    return None
+
+TWILIO_PHONE = os.environ.get("TWILIO_PHONE_NUMBER", "")
+TWILIO_WA = os.environ.get("TWILIO_WHATSAPP_NUMBER", "")
+
+def send_sms(to_number: str, message: str) -> dict:
+    """Send SMS via Twilio. Returns status dict."""
+    try:
+        twilio = get_twilio_client()
+        if not twilio or not TWILIO_PHONE:
+            return {"success": False, "error": "Twilio not configured", "sid": None}
+        # Ensure E.164 format
+        if not to_number.startswith("+"):
+            to_number = "+91" + to_number.lstrip("0")
+        msg = twilio.messages.create(body=message, from_=TWILIO_PHONE, to=to_number)
+        logger.info(f"SMS sent to {to_number}: SID={msg.sid}")
+        return {"success": True, "sid": msg.sid, "status": msg.status}
+    except Exception as e:
+        logger.error(f"SMS error to {to_number}: {e}")
+        return {"success": False, "error": str(e), "sid": None}
+
+def send_whatsapp(to_number: str, message: str) -> dict:
+    """Send WhatsApp message via Twilio sandbox."""
+    try:
+        twilio = get_twilio_client()
+        if not twilio or not TWILIO_WA:
+            return {"success": False, "error": "Twilio WhatsApp not configured", "sid": None}
+        if not to_number.startswith("+"):
+            to_number = "+91" + to_number.lstrip("0")
+        msg = twilio.messages.create(body=message, from_=f"whatsapp:{TWILIO_WA}", to=f"whatsapp:{to_number}")
+        logger.info(f"WhatsApp sent to {to_number}: SID={msg.sid}")
+        return {"success": True, "sid": msg.sid, "status": msg.status}
+    except Exception as e:
+        logger.error(f"WhatsApp error to {to_number}: {e}")
+        return {"success": False, "error": str(e), "sid": None}
 
 # ── Helpers ──
 def get_jwt_secret():
@@ -672,9 +715,202 @@ async def get_communications(type: str = ""):
 async def create_communication(data: CommunicationCreate):
     doc = data.model_dump()
     doc["created_at"] = datetime.now(timezone.utc).isoformat()
-    doc["status"] = "Sent"
+    doc["status"] = "Pending"
+    doc["delivery_results"] = []
+
+    # If SMS or WhatsApp, actually send via Twilio
+    if data.type in ("sms", "whatsapp"):
+        # Get recipient phone numbers based on recipients field
+        phones = await _resolve_recipient_phones(data.recipients)
+        results = []
+        sent = 0
+        failed = 0
+        for phone in phones:
+            if data.type == "sms":
+                r = send_sms(phone, f"St. Paul's School: {data.title}\n\n{data.message}")
+            else:
+                r = send_whatsapp(phone, f"*St. Paul's School*\n\n*{data.title}*\n{data.message}")
+            results.append({"phone": phone, **r})
+            if r["success"]:
+                sent += 1
+            else:
+                failed += 1
+        doc["delivery_results"] = results
+        doc["sent_count"] = sent
+        doc["failed_count"] = failed
+        doc["status"] = "Sent" if sent > 0 else "Failed"
+    else:
+        doc["status"] = "Sent"
+
     result = await db.communications.insert_one(doc)
     return clean_mongo_doc(doc)
+
+async def _resolve_recipient_phones(recipients: str) -> list:
+    """Resolve recipient group to phone numbers."""
+    phones = []
+    if "All" in recipients:
+        students = await db.students.find({}, {"phone": 1}).to_list(1000)
+        staff = await db.staff.find({}, {"phone": 1}).to_list(1000)
+        phones = [s["phone"] for s in students if s.get("phone")] + [s["phone"] for s in staff if s.get("phone")]
+    elif "Parent" in recipients or "Student" in recipients:
+        query = {}
+        # Check for class-specific like "Class 10-A Parents"
+        if "Class" in recipients:
+            parts = recipients.replace("Class ", "").replace(" Parents", "").replace(" Students", "").split("-")
+            if len(parts) >= 1:
+                query["class_name"] = parts[0].strip()
+            if len(parts) >= 2:
+                query["section"] = parts[1].strip()
+        students = await db.students.find(query, {"phone": 1}).to_list(1000)
+        phones = [s["phone"] for s in students if s.get("phone")]
+    elif "Staff" in recipients:
+        staff = await db.staff.find({}, {"phone": 1}).to_list(1000)
+        phones = [s["phone"] for s in staff if s.get("phone")]
+    return list(set(phones))
+
+# ── Notification API ──
+class NotificationSend(BaseModel):
+    type: str  # sms / whatsapp
+    phone: str
+    message: str
+
+class BulkNotification(BaseModel):
+    type: str  # sms / whatsapp
+    message: str
+    recipient_group: str  # All Students, Class 10-A Parents, etc.
+
+@api_router.post("/notifications/send")
+async def send_notification(data: NotificationSend):
+    """Send a single SMS or WhatsApp message."""
+    if data.type == "sms":
+        result = send_sms(data.phone, data.message)
+    elif data.type == "whatsapp":
+        result = send_whatsapp(data.phone, data.message)
+    else:
+        raise HTTPException(status_code=400, detail="Type must be 'sms' or 'whatsapp'")
+    # Log to DB
+    await db.notification_logs.insert_one({
+        "type": data.type, "phone": data.phone, "message": data.message,
+        "result": result, "sent_at": datetime.now(timezone.utc).isoformat()
+    })
+    return result
+
+@api_router.post("/notifications/bulk")
+async def send_bulk_notification(data: BulkNotification):
+    """Send SMS/WhatsApp to a group of recipients."""
+    phones = await _resolve_recipient_phones(data.recipient_group)
+    if not phones:
+        return {"message": "No phone numbers found for this group", "sent": 0, "failed": 0}
+    results = []
+    sent = 0
+    failed = 0
+    for phone in phones:
+        if data.type == "sms":
+            r = send_sms(phone, data.message)
+        else:
+            r = send_whatsapp(phone, data.message)
+        results.append({"phone": phone, **r})
+        if r["success"]:
+            sent += 1
+        else:
+            failed += 1
+    # Log
+    await db.notification_logs.insert_one({
+        "type": data.type, "recipient_group": data.recipient_group,
+        "message": data.message, "total": len(phones), "sent": sent, "failed": failed,
+        "results": results, "sent_at": datetime.now(timezone.utc).isoformat()
+    })
+    return {"message": f"Sent to {sent}/{len(phones)} recipients", "sent": sent, "failed": failed, "total": len(phones), "results": results}
+
+@api_router.post("/notifications/attendance-alert")
+async def send_attendance_alert(data: dict):
+    """Send attendance alerts to parents of absent students."""
+    date = data.get("date", datetime.now(timezone.utc).strftime("%Y-%m-%d"))
+    class_name = data.get("class_name", "")
+    section = data.get("section", "")
+    notif_type = data.get("type", "sms")
+
+    query = {"date": date, "status": {"$in": ["Absent", "Late"]}}
+    if class_name:
+        query["class_name"] = class_name
+    if section:
+        query["section"] = section
+
+    absent_records = await db.attendance.find(query, {"_id": 0}).to_list(1000)
+    if not absent_records:
+        return {"message": "No absent/late students found", "sent": 0}
+
+    results = []
+    sent = 0
+    for rec in absent_records:
+        sid = rec.get("student_id", "")
+        try:
+            student = await db.students.find_one({"_id": ObjectId(sid)}, {"name": 1, "phone": 1, "class_name": 1, "section": 1})
+        except Exception:
+            student = None
+        if not student or not student.get("phone"):
+            continue
+        status = rec.get("status", "Absent")
+        msg = f"Dear Parent, your child {student['name']} (Class {student['class_name']}-{student.get('section','')}) was marked {status} on {date}. Please contact the school if needed. - St. Paul's School"
+        if notif_type == "whatsapp":
+            r = send_whatsapp(student["phone"], msg)
+        else:
+            r = send_sms(student["phone"], msg)
+        results.append({"student": student["name"], "phone": student["phone"], **r})
+        if r["success"]:
+            sent += 1
+
+    await db.notification_logs.insert_one({
+        "type": f"attendance_alert_{notif_type}", "date": date, "total": len(absent_records),
+        "sent": sent, "results": results, "sent_at": datetime.now(timezone.utc).isoformat()
+    })
+    return {"message": f"Attendance alerts sent to {sent}/{len(absent_records)} parents", "sent": sent, "total": len(absent_records), "results": results}
+
+@api_router.post("/notifications/fee-reminder")
+async def send_fee_reminder(data: dict):
+    """Send fee reminders to students/parents."""
+    student_ids = data.get("student_ids", [])
+    notif_type = data.get("type", "sms")
+    custom_message = data.get("message", "")
+
+    if not student_ids:
+        # Get all students
+        students = await db.students.find({}, {"name": 1, "phone": 1, "class_name": 1}).to_list(1000)
+    else:
+        students = []
+        for sid in student_ids:
+            try:
+                s = await db.students.find_one({"_id": ObjectId(sid)})
+                if s:
+                    students.append(s)
+            except Exception:
+                pass
+
+    results = []
+    sent = 0
+    for s in students:
+        if not s.get("phone"):
+            continue
+        msg = custom_message or f"Dear Parent, this is a reminder to clear the pending school fees for {s['name']} (Class {s.get('class_name','')}). Please visit the school office or pay online. - St. Paul's School"
+        if notif_type == "whatsapp":
+            r = send_whatsapp(s["phone"], msg)
+        else:
+            r = send_sms(s["phone"], msg)
+        results.append({"student": s["name"], "phone": s["phone"], **r})
+        if r["success"]:
+            sent += 1
+
+    await db.notification_logs.insert_one({
+        "type": f"fee_reminder_{notif_type}", "total": len(students),
+        "sent": sent, "results": results, "sent_at": datetime.now(timezone.utc).isoformat()
+    })
+    return {"message": f"Fee reminders sent to {sent}/{len(students)} parents", "sent": sent, "total": len(students), "results": results}
+
+@api_router.get("/notifications/logs")
+async def get_notification_logs(limit: int = 50):
+    """Get recent notification logs."""
+    logs = await db.notification_logs.find({}).sort("sent_at", -1).to_list(limit)
+    return serialize_docs(logs)
 
 # ── TRANSPORT ──
 @api_router.get("/transport/routes")
