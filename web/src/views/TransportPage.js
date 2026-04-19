@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Bus, MapPin, Phone, Users } from 'lucide-react';
+import { Bus, MapPin, Phone, Users, Plus } from 'lucide-react';
+import BulkUpload from '@/components/BulkUpload';
 
 const API = "";
 const headers = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
@@ -31,9 +32,19 @@ export default function TransportPage() {
 
   return (
     <div className="space-y-6 animate-fade-in" data-testid="transport-page">
-      <div>
-        <h1 className="text-2xl font-black text-slate-900 tracking-tight" style={{ fontFamily: 'Manrope' }}>Transport</h1>
-        <p className="text-sm text-slate-500 mt-1">Routes, buses, and student mapping</p>
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight" style={{ fontFamily: 'Manrope' }}>Transport</h1>
+          <p className="text-sm text-slate-500 mt-1">Routes, buses, and student mapping</p>
+        </div>
+        <div className="flex gap-2">
+          <BulkUpload 
+            entityName="Routes"
+            templateHeaders={['route_name', 'bus_number', 'driver', 'driver_phone']}
+            uploadUrl="/api/transport/routes"
+            onSuccess={() => window.location.reload()}
+          />
+        </div>
       </div>
 
       {/* Routes */}

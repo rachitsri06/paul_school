@@ -3,6 +3,7 @@ import axios from 'axios';
 import { BookOpen, Plus, Search, RotateCcw } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import BulkUpload from '@/components/BulkUpload';
 
 const API = "";
 const headers = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
@@ -86,6 +87,12 @@ export default function LibraryPage() {
           <p className="text-sm text-slate-500 mt-1">{books.length} books in inventory | {issued.filter(i => i.status === 'Issued').length} currently issued</p>
         </div>
         <div className="flex gap-2">
+          <BulkUpload 
+            entityName="Books"
+            templateHeaders={['title', 'author', 'isbn', 'category', 'total_copies', 'available_copies']}
+            uploadUrl="/api/library/books"
+            onSuccess={fetchData}
+          />
           <button onClick={() => setShowAddBook(true)} className="bg-blue-900 hover:bg-blue-800 text-white font-medium rounded-md px-4 py-2 text-sm flex items-center gap-2 transition-colors" data-testid="add-book-btn">
             <Plus size={16} /> Add Book
           </button>

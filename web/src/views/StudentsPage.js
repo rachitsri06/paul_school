@@ -5,6 +5,7 @@ import { Search, Plus, Filter, User, IdCard, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import BulkUpload from '@/components/BulkUpload';
 
 const API = "";
 const token = () => localStorage.getItem('token');
@@ -68,9 +69,19 @@ export default function StudentsPage() {
           <h1 className="text-2xl font-black text-slate-900 tracking-tight" style={{ fontFamily: 'Manrope' }}>Students</h1>
           <p className="text-sm text-slate-500 mt-1">{students.length} students enrolled</p>
         </div>
-        {isAdmin && <button onClick={() => setShowEnroll(true)} className="bg-blue-900 hover:bg-blue-800 text-white font-medium rounded-md px-4 py-2 text-sm flex items-center gap-2 transition-colors" data-testid="enroll-student-btn">
-          <Plus size={16} /> Enroll Student
-        </button>}
+        <div className="flex gap-2">
+          {isAdmin && (
+            <BulkUpload 
+              entityName="Students"
+              templateHeaders={['name', 'roll_no', 'class_name', 'section', 'gender', 'dob', 'father_name', 'mother_name', 'phone', 'address', 'blood_group']}
+              uploadUrl="/api/students"
+              onSuccess={fetchStudents}
+            />
+          )}
+          {isAdmin && <button onClick={() => setShowEnroll(true)} className="bg-blue-900 hover:bg-blue-800 text-white font-medium rounded-md px-4 py-2 text-sm flex items-center gap-2 transition-colors" data-testid="enroll-student-btn">
+            <Plus size={16} /> Enroll Student
+          </button>}
+        </div>
       </div>
 
       {/* Filters */}

@@ -32,10 +32,10 @@ export async function POST(request: Request) {
     await requireAdmin(request);
     const body = await request.json();
 
-    const { data: student, error } = await supabase.from('students').insert(body).select().single();
+    const { data: student, error } = await supabase.from('students').insert(body).select();
     if (error) throw error;
 
-    return NextResponse.json(student);
+    return NextResponse.json(Array.isArray(body) ? student : student[0]);
   } catch (error: any) {
     return NextResponse.json({ detail: error.message }, { status: error.message.includes('Admin') ? 403 : 500 });
   }

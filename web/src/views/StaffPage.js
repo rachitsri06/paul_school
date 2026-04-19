@@ -3,6 +3,7 @@ import axios from 'axios';
 import { Plus, Search, UserCog } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import BulkUpload from '@/components/BulkUpload';
 
 const API = "";
 const headers = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
@@ -59,9 +60,17 @@ export default function StaffPage() {
           <h1 className="text-2xl font-black text-slate-900 tracking-tight" style={{ fontFamily: 'Manrope' }}>Staff & HR</h1>
           <p className="text-sm text-slate-500 mt-1">{staff.length} staff members</p>
         </div>
-        <button onClick={() => setShowAdd(true)} className="bg-blue-900 hover:bg-blue-800 text-white font-medium rounded-md px-4 py-2 text-sm flex items-center gap-2 transition-colors" data-testid="add-staff-btn">
-          <Plus size={16} /> Add Staff
-        </button>
+        <div className="flex gap-2">
+          <BulkUpload 
+            entityName="Staff"
+            templateHeaders={['name', 'emp_id', 'designation', 'department', 'phone', 'email', 'joining_date', 'salary', 'qualification', 'gender', 'address']}
+            uploadUrl="/api/staff"
+            onSuccess={fetchStaff}
+          />
+          <button onClick={() => setShowAdd(true)} className="bg-blue-900 hover:bg-blue-800 text-white font-medium rounded-md px-4 py-2 text-sm flex items-center gap-2 transition-colors" data-testid="add-staff-btn">
+            <Plus size={16} /> Add Staff
+          </button>
+        </div>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-3">

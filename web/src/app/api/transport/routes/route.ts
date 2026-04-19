@@ -12,3 +12,15 @@ export async function GET() {
     return NextResponse.json({ detail: error.message }, { status: 500 });
   }
 }
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const { data, error } = await supabase.from('transport_routes').insert(body).select();
+    if (error) throw error;
+
+    return NextResponse.json(Array.isArray(body) ? data : data[0]);
+  } catch (error: any) {
+    return NextResponse.json({ detail: error.message }, { status: 500 });
+  }
+}
