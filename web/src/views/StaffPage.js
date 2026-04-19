@@ -15,7 +15,7 @@ export default function StaffPage() {
   const [showAdd, setShowAdd] = useState(false);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({
-    name: '', emp_id: '', designation: '', department: 'Mathematics', phone: '', email: '',
+    name: '', emp_id: '', designation: '', department: 'Administration', phone: '', email: '',
     joining_date: '', salary: '', qualification: '', gender: 'Male', address: ''
   });
 
@@ -38,7 +38,7 @@ export default function StaffPage() {
       await axios.post(`${API}/api/staff`, { ...form, salary: parseFloat(form.salary) }, { headers: headers() });
       toast.success('Staff added successfully');
       setShowAdd(false);
-      setForm({ name: '', emp_id: '', designation: '', department: 'Mathematics', phone: '', email: '', joining_date: '', salary: '', qualification: '', gender: 'Male', address: '' });
+      setForm({ name: '', emp_id: '', designation: '', department: 'Administration', phone: '', email: '', joining_date: '', salary: '', qualification: '', gender: 'Male', address: '' });
       fetchStaff();
     } catch { toast.error('Failed to add staff'); }
   };
@@ -118,7 +118,7 @@ export default function StaffPage() {
               <div><label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Designation</label><input value={form.designation} onChange={e => setForm({...form, designation: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm mt-1" /></div>
               <div><label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Department</label>
                 <select value={form.department} onChange={e => setForm({...form, department: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm mt-1">
-                  {['Mathematics','Science','English','Hindi','Social Studies','Computer Science','Physical Education','Library','Administration','Support Staff'].map(d => <option key={d}>{d}</option>)}
+                  {['Administration', 'Teaching Staff', 'Support Staff'].map(d => <option key={d}>{d}</option>)}
                 </select>
               </div>
               <div><label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Phone</label><input value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm mt-1" /></div>

@@ -13,21 +13,22 @@ const SUBJECT_COLORS = {
 export default function TimetablePage() {
   const [timetable, setTimetable] = useState([]);
   const [exams, setExams] = useState([]);
-  const [className, setClassName] = useState('10');
-  const [section, setSection] = useState('A');
+  const [className, setClassName] = useState('1st');
 
   useEffect(() => {
     (async () => {
       try {
         const [ttRes, exRes] = await Promise.all([
-          axios.get(`${API}/api/timetable?class_name=${className}&section=${section}`, { headers: headers() }),
+      try {
+        const [ttRes, exRes] = await Promise.all([
+          axios.get(`${API}/api/timetable?class_name=${className}`, { headers: headers() }),
           axios.get(`${API}/api/timetable/exams`, { headers: headers() })
         ]);
         setTimetable(ttRes.data);
         setExams(exRes.data);
       } catch (err) { console.error(err); }
     })();
-  }, [className, section]);
+  }, [className]);
 
   const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
   const periods = [...new Set(timetable.map(t => t.period))].sort((a, b) => {
@@ -47,10 +48,7 @@ export default function TimetablePage() {
         </div>
         <div className="flex gap-2">
           <select value={className} onChange={e => setClassName(e.target.value)} className="px-3 py-2 border border-slate-300 rounded-md text-sm" data-testid="tt-class">
-            {['5','6','7','8','9','10'].map(c => <option key={c} value={c}>Class {c}</option>)}
-          </select>
-          <select value={section} onChange={e => setSection(e.target.value)} className="px-3 py-2 border border-slate-300 rounded-md text-sm" data-testid="tt-section">
-            <option value="A">Sec A</option><option value="B">Sec B</option>
+            {['PG','Nursery','LKG','UKG','1st','2nd','3rd','4th','5th'].map(c => <option key={c} value={c}>Class {c}</option>)}
           </select>
         </div>
       </div>
@@ -59,7 +57,6 @@ export default function TimetablePage() {
         <TabsList className="bg-slate-100">
           <TabsTrigger value="weekly" data-testid="tab-weekly">Weekly Schedule</TabsTrigger>
           <TabsTrigger value="exams" data-testid="tab-exams">Exam Schedule</TabsTrigger>
-          <TabsTrigger value="teachers" data-testid="tab-teachers">Teacher Mapping</TabsTrigger>
         </TabsList>
 
         <TabsContent value="weekly">
@@ -134,27 +131,6 @@ export default function TimetablePage() {
           </div>
         </TabsContent>
 
-        <TabsContent value="teachers">
-          <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-5">
-            <h3 className="text-lg font-bold text-slate-900 mb-4" style={{ fontFamily: 'Manrope' }}>Teacher-Subject Mapping</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {Object.entries(SUBJECT_COLORS).map(([subj, color]) => {
-                const entry = timetable.find(t => t.subject === subj);
-                return (
-                  <div key={subj} className="flex items-center gap-3 p-3 rounded-lg border border-slate-200 hover:shadow-sm transition-shadow">
-                    <div className="w-10 h-10 rounded-lg flex items-center justify-center text-white text-xs font-bold" style={{ backgroundColor: color }}>
-                      {subj.substring(0, 2).toUpperCase()}
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold text-slate-800">{subj}</p>
-                      <p className="text-xs text-slate-500">{entry?.teacher || 'Not assigned'}</p>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        </TabsContent>
       </Tabs>
     </div>
   );

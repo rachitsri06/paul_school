@@ -10,8 +10,7 @@ export default function AttendancePage() {
   const [students, setStudents] = useState([]);
   const [records, setRecords] = useState({});
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
-  const [className, setClassName] = useState('10');
-  const [section, setSection] = useState('A');
+  const [className, setClassName] = useState('1st');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
@@ -19,8 +18,8 @@ export default function AttendancePage() {
     setLoading(true);
     try {
       const [studRes, attRes] = await Promise.all([
-        axios.get(`${API}/api/students?class_name=${className}&section=${section}`, { headers: headers() }),
-        axios.get(`${API}/api/attendance?date=${date}&class_name=${className}&section=${section}`, { headers: headers() })
+        axios.get(`${API}/api/students?class_name=${className}`, { headers: headers() }),
+        axios.get(`${API}/api/attendance?date=${date}&class_name=${className}`, { headers: headers() })
       ]);
       setStudents(studRes.data);
       const recs = {};
@@ -30,7 +29,7 @@ export default function AttendancePage() {
       setRecords(recs);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
-  }, [date, className, section]);
+  }, [date, className]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -52,7 +51,7 @@ export default function AttendancePage() {
         student_id: s._id, student_name: s.name, roll_no: s.roll_no, status: records[s._id] || 'Present'
       }));
       const { data } = await axios.post(`${API}/api/attendance/bulk`, {
-        date, class_name: className, section, records: recordsList
+        date, class_name: className, records: recordsList
       }, { headers: headers() });
       toast.success(`Attendance saved! P:${data.present} A:${data.absent} L:${data.late} Lv:${data.leave}`);
     } catch (err) { toast.error('Failed to save attendance'); }
@@ -98,10 +97,7 @@ export default function AttendancePage() {
         <div className="flex gap-2">
           <input type="date" value={date} onChange={e => setDate(e.target.value)} className="px-3 py-2 border border-slate-300 rounded-md text-sm" data-testid="attendance-date" />
           <select value={className} onChange={e => setClassName(e.target.value)} className="px-3 py-2 border border-slate-300 rounded-md text-sm" data-testid="attendance-class">
-            {['5','6','7','8','9','10'].map(c => <option key={c} value={c}>Class {c}</option>)}
-          </select>
-          <select value={section} onChange={e => setSection(e.target.value)} className="px-3 py-2 border border-slate-300 rounded-md text-sm" data-testid="attendance-section">
-            <option value="A">Sec A</option><option value="B">Sec B</option>
+            {['PG','Nursery','LKG','UKG','1st','2nd','3rd','4th','5th'].map(c => <option key={c} value={c}>Class {c}</option>)}
           </select>
         </div>
         <div className="flex gap-2" data-testid="attendance-counters">
@@ -145,7 +141,7 @@ export default function AttendancePage() {
                   </tr>
                 ))}
                 {students.length === 0 && (
-                  <tr><td colSpan={4} className="px-4 py-8 text-center text-slate-400">No students found for this class/section</td></tr>
+                  <tr><td colSpan={4} className="px-4 py-8 text-center text-slate-400">No students found for this class</td></tr>
                 )}
               </tbody>
             </table>

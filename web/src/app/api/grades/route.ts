@@ -10,7 +10,7 @@ export async function GET(request: Request) {
 
     let query = supabase.from('grades').select('*');
     if (student_id) query = query.eq('student_id', student_id);
-    if (class_name) query = query.eq('subject', class_name); // fallback filter
+    if (class_name) query = query.eq('class_name', class_name);
 
     const { data, error } = await query.order('created_at', { ascending: false });
     if (error) throw error;

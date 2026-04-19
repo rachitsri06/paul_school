@@ -8,7 +8,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const search = searchParams.get('search') || '';
     const class_name = searchParams.get('class_name') || '';
-    const section = searchParams.get('section') || '';
+    // Removing section as per reorganization
 
     let query = supabase.from('students').select('*');
 
@@ -16,7 +16,6 @@ export async function GET(request: Request) {
       query = query.or(`name.ilike.%${search}%,roll_no.ilike.%${search}%`);
     }
     if (class_name) query = query.eq('class_name', class_name);
-    if (section) query = query.eq('section', section);
 
     const { data: students, error } = await query.limit(1000);
     if (error) throw error;

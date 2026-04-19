@@ -86,24 +86,14 @@ export default function SettingsPage() {
       {/* Academic Config */}
       <div className="bg-white rounded-lg border border-slate-200 shadow-sm p-5">
         <h3 className="text-lg font-bold text-slate-900 mb-4" style={{ fontFamily: 'Manrope' }}>Academic Configuration</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Classes</label>
+            <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Active Classes</label>
             <div className="flex flex-wrap gap-2 mt-2">
-              {(settings.classes || []).map((c, i) => (
+              {['PG','Nursery','LKG','UKG','1st','2nd','3rd','4th','5th'].map((c, i) => (
                 <span key={i} className="bg-blue-100 text-blue-800 text-xs font-semibold px-3 py-1 rounded-md">Class {c}</span>
               ))}
             </div>
           </div>
-          <div>
-            <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Sections</label>
-            <div className="flex flex-wrap gap-2 mt-2">
-              {(settings.sections || []).map((s, i) => (
-                <span key={i} className="bg-emerald-100 text-emerald-800 text-xs font-semibold px-3 py-1 rounded-md">Section {s}</span>
-              ))}
-            </div>
-          </div>
-        </div>
       </div>
 
       {/* Notification Toggles */}

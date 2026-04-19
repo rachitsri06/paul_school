@@ -17,7 +17,7 @@ export default function CommunicationPage() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [form, setForm] = useState({ type: 'notice', title: '', message: '', recipients: 'All Students', sender: '' });
-  const [attAlertForm, setAttAlertForm] = useState({ date: new Date().toISOString().split('T')[0], class_name: '', section: '', type: 'sms' });
+  const [attAlertForm, setAttAlertForm] = useState({ date: new Date().toISOString().split('T')[0], class_name: '', type: 'sms' });
   const [feeForm, setFeeForm] = useState({ type: 'sms', message: '' });
 
   useEffect(() => { fetchAll(); }, []);
@@ -264,14 +264,7 @@ export default function CommunicationPage() {
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Class (optional)</label>
                 <select value={attAlertForm.class_name} onChange={e => setAttAlertForm({...attAlertForm, class_name: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm mt-1">
                   <option value="">All Classes</option>
-                  {['5','6','7','8','9','10'].map(c => <option key={c} value={c}>Class {c}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Section (optional)</label>
-                <select value={attAlertForm.section} onChange={e => setAttAlertForm({...attAlertForm, section: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm mt-1">
-                  <option value="">All Sections</option>
-                  <option value="A">A</option><option value="B">B</option>
+                  {['PG','Nursery','LKG','UKG','1st','2nd','3rd','4th','5th'].map(c => <option key={c} value={c}>Class {c}</option>)}
                 </select>
               </div>
             </div>

@@ -10,19 +10,18 @@ const autoGrade = (marks) => marks >= 90 ? 'A+' : marks >= 80 ? 'A' : marks >= 7
 
 export default function GradesPage() {
   const [grades, setGrades] = useState([]);
-  const [className, setClassName] = useState('10');
-  const [section, setSection] = useState('A');
+  const [className, setClassName] = useState('1st');
   const [exam, setExam] = useState('Mid-Term');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     (async () => {
       try {
-        const { data } = await axios.get(`${API}/api/grades?class_name=${className}&section=${section}&exam=${exam}`, { headers: headers() });
+        const { data } = await axios.get(`${API}/api/grades?class_name=${className}&exam=${exam}`, { headers: headers() });
         setGrades(data);
       } catch (err) { console.error(err); }
     })();
-  }, [className, section, exam]);
+  }, [className, exam]);
 
   const updateMark = (studentId, subject, marks) => {
     const m = Math.min(100, Math.max(0, parseInt(marks) || 0));
@@ -75,10 +74,7 @@ export default function GradesPage() {
 
       <div className="flex gap-2">
         <select value={className} onChange={e => setClassName(e.target.value)} className="px-3 py-2 border border-slate-300 rounded-md text-sm">
-          {['5','6','7','8','9','10'].map(c => <option key={c} value={c}>Class {c}</option>)}
-        </select>
-        <select value={section} onChange={e => setSection(e.target.value)} className="px-3 py-2 border border-slate-300 rounded-md text-sm">
-          <option value="A">Sec A</option><option value="B">Sec B</option>
+          {['PG','Nursery','LKG','UKG','1st','2nd','3rd','4th','5th'].map(c => <option key={c} value={c}>Class {c}</option>)}
         </select>
         <select value={exam} onChange={e => setExam(e.target.value)} className="px-3 py-2 border border-slate-300 rounded-md text-sm" data-testid="exam-select">
           <option value="Mid-Term">Mid-Term</option><option value="Annual">Annual</option>

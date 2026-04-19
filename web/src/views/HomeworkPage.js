@@ -11,7 +11,7 @@ export default function HomeworkPage() {
   const [homework, setHomework] = useState([]);
   const [showAssign, setShowAssign] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [form, setForm] = useState({ title: '', subject: 'Mathematics', class_name: '10', section: 'A', due_date: '', description: '', assigned_by: '' });
+  const [form, setForm] = useState({ title: '', subject: 'Mathematics', class_name: '1st', due_date: '', description: '', assigned_by: '' });
 
   useEffect(() => {
     fetchHomework();
@@ -31,7 +31,7 @@ export default function HomeworkPage() {
       await axios.post(`${API}/api/homework`, form, { headers: headers() });
       toast.success('Homework assigned successfully');
       setShowAssign(false);
-      setForm({ title: '', subject: 'Mathematics', class_name: '10', section: 'A', due_date: '', description: '', assigned_by: '' });
+      setForm({ title: '', subject: 'Mathematics', class_name: '1st', due_date: '', description: '', assigned_by: '' });
       fetchHomework();
     } catch { toast.error('Failed to assign homework'); }
   };
@@ -80,7 +80,7 @@ export default function HomeworkPage() {
                 <p className="text-sm text-slate-500 mt-1">{hw.description}</p>
                 <div className="flex flex-wrap gap-3 mt-3 text-xs text-slate-500">
                   <span className="bg-slate-100 px-2 py-0.5 rounded">{hw.subject}</span>
-                  <span>Class {hw.class_name}-{hw.section}</span>
+                  <span>Class {hw.class_name}</span>
                   <span>Due: {hw.due_date}</span>
                   <span>By: {hw.assigned_by || 'Teacher'}</span>
                   <span>Submissions: {hw.submissions || 0}</span>
@@ -117,13 +117,7 @@ export default function HomeworkPage() {
               <div>
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Class</label>
                 <select value={form.class_name} onChange={e => setForm({...form, class_name: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm mt-1">
-                  {['5','6','7','8','9','10'].map(c => <option key={c} value={c}>Class {c}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Section</label>
-                <select value={form.section} onChange={e => setForm({...form, section: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm mt-1">
-                  <option value="A">A</option><option value="B">B</option>
+                  {['PG','Nursery','LKG','UKG','1st','2nd','3rd','4th','5th'].map(c => <option key={c} value={c}>Class {c}</option>)}
                 </select>
               </div>
             </div>

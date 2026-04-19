@@ -121,7 +121,7 @@ export default function FeeManagementPage() {
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Student</label>
               <select value={form.student_id} onChange={e => selectStudent(e.target.value)} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm mt-1" required data-testid="fee-student-select">
                 <option value="">Select Student</option>
-                {students.map(s => <option key={s._id} value={s._id}>{s.name} (Class {s.class_name}-{s.section})</option>)}
+                {students.map(s => <option key={s._id} value={s._id}>{s.name} (Class {s.class_name})</option>)}
               </select>
             </div>
             <div className="grid grid-cols-2 gap-3">

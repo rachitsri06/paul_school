@@ -23,7 +23,7 @@ export default function StudentsPage() {
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
-    name: '', roll_no: '', class_name: '10', section: 'A', gender: 'Male',
+    name: '', roll_no: '', class_name: '1st', gender: 'Male',
     dob: '', father_name: '', mother_name: '', phone: '', address: '',
     admission_date: '', blood_group: '', transport_route: '', photo_url: ''
   });
@@ -47,7 +47,7 @@ export default function StudentsPage() {
       await axios.post(`${API}/api/students`, form, { headers: headers() });
       toast.success('Student enrolled successfully');
       setShowEnroll(false);
-      setForm({ name: '', roll_no: '', class_name: '10', section: 'A', gender: 'Male', dob: '', father_name: '', mother_name: '', phone: '', address: '', admission_date: '', blood_group: '', transport_route: '', photo_url: '' });
+      setForm({ name: '', roll_no: '', class_name: '1st', gender: 'Male', dob: '', father_name: '', mother_name: '', phone: '', address: '', admission_date: '', blood_group: '', transport_route: '', photo_url: '' });
       fetchStudents();
     } catch (err) {
       toast.error('Failed to enroll student');
@@ -73,7 +73,7 @@ export default function StudentsPage() {
           {isAdmin && (
             <BulkUpload 
               entityName="Students"
-              templateHeaders={['name', 'roll_no', 'class_name', 'section', 'gender', 'dob', 'father_name', 'mother_name', 'phone', 'address', 'blood_group']}
+              templateHeaders={['name', 'roll_no', 'class_name', 'gender', 'dob', 'father_name', 'mother_name', 'phone', 'address', 'blood_group']}
               uploadUrl="/api/students"
               onSuccess={fetchStudents}
             />
@@ -99,7 +99,7 @@ export default function StudentsPage() {
           <Filter size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
           <select value={classFilter} onChange={e => setClassFilter(e.target.value)} className="pl-9 pr-8 py-2 border border-slate-300 rounded-md text-sm focus:ring-2 focus:ring-blue-900 appearance-none bg-white" data-testid="class-filter">
             <option value="">All Classes</option>
-            {['5','6','7','8','9','10'].map(c => <option key={c} value={c}>Class {c}</option>)}
+            {['PG','Nursery','LKG','UKG','1st','2nd','3rd','4th','5th'].map(c => <option key={c} value={c}>Class {c}</option>)}
           </select>
         </div>
       </div>
@@ -113,7 +113,6 @@ export default function StudentsPage() {
                 <th className="px-4 py-3 font-semibold text-slate-600 text-xs uppercase tracking-widest">Roll No</th>
                 <th className="px-4 py-3 font-semibold text-slate-600 text-xs uppercase tracking-widest">Name</th>
                 <th className="px-4 py-3 font-semibold text-slate-600 text-xs uppercase tracking-widest">Class</th>
-                <th className="px-4 py-3 font-semibold text-slate-600 text-xs uppercase tracking-widest">Section</th>
                 <th className="px-4 py-3 font-semibold text-slate-600 text-xs uppercase tracking-widest">Gender</th>
                 <th className="px-4 py-3 font-semibold text-slate-600 text-xs uppercase tracking-widest">Phone</th>
                 <th className="px-4 py-3 font-semibold text-slate-600 text-xs uppercase tracking-widest">Actions</th>
@@ -130,7 +129,6 @@ export default function StudentsPage() {
                     </div>
                   </td>
                   <td className="px-4 py-3 text-slate-600">{s.class_name}</td>
-                  <td className="px-4 py-3 text-slate-600">{s.section}</td>
                   <td className="px-4 py-3 text-slate-600">{s.gender}</td>
                   <td className="px-4 py-3 text-slate-600">{s.phone}</td>
                   <td className="px-4 py-3">
@@ -165,13 +163,7 @@ export default function StudentsPage() {
               <div>
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Class</label>
                 <select value={form.class_name} onChange={e => setForm({...form, class_name: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm mt-1">
-                  {['1','2','3','4','5','6','7','8','9','10'].map(c => <option key={c} value={c}>Class {c}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Section</label>
-                <select value={form.section} onChange={e => setForm({...form, section: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm mt-1">
-                  <option value="A">A</option><option value="B">B</option>
+                  {['PG','Nursery','LKG','UKG','1st','2nd','3rd','4th','5th'].map(c => <option key={c} value={c}>Class {c}</option>)}
                 </select>
               </div>
               <div>
@@ -227,7 +219,7 @@ export default function StudentsPage() {
                   {showIdCard.name[0]}
                 </div>
                 <p className="font-bold text-slate-900 text-lg">{showIdCard.name}</p>
-                <p className="text-sm text-slate-500 mt-1">Class {showIdCard.class_name}-{showIdCard.section} | Roll No: {showIdCard.roll_no}</p>
+                <p className="text-sm text-slate-500 mt-1">Class {showIdCard.class_name} | Roll No: {showIdCard.roll_no}</p>
                 <div className="mt-3 text-xs text-slate-600 space-y-1">
                   <p>Father: {showIdCard.father_name}</p>
                   <p>Blood Group: {showIdCard.blood_group || 'N/A'}</p>
