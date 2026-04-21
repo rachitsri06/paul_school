@@ -39,7 +39,7 @@ export default function HomeworkPage() {
   const updateStatus = async (hw) => {
     const next = hw.status === 'Active' ? 'Completed' : hw.status === 'Completed' ? 'Pending' : 'Active';
     try {
-      await axios.put(`${API}/api/homework/${hw._id}`, { status: next }, { headers: headers() });
+      await axios.put(`${API}/api/homework/${hw.id}`, { status: next }, { headers: headers() });
       toast.success(`Status updated to ${next}`);
       fetchHomework();
     } catch { toast.error('Failed to update'); }
@@ -70,7 +70,7 @@ export default function HomeworkPage() {
 
       <div className="grid gap-4">
         {homework.map(hw => (
-          <div key={hw._id} className="bg-white rounded-lg border border-slate-200 shadow-sm p-5 hover:shadow-md transition-shadow" data-testid={`homework-${hw._id}`}>
+          <div key={hw.id} className="bg-white rounded-lg border border-slate-200 shadow-sm p-5 hover:shadow-md transition-shadow" data-testid={`homework-${hw.id}`}>
             <div className="flex items-start justify-between gap-4">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-1">
@@ -86,7 +86,7 @@ export default function HomeworkPage() {
                   <span>Submissions: {hw.submissions || 0}</span>
                 </div>
               </div>
-              <button onClick={() => updateStatus(hw)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold border ${statusBadge(hw.status)} transition-colors`} data-testid={`hw-status-${hw._id}`}>
+              <button onClick={() => updateStatus(hw)} className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold border ${statusBadge(hw.status)} transition-colors`} data-testid={`hw-status-${hw.id}`}>
                 {statusIcon(hw.status)} {hw.status}
               </button>
             </div>
