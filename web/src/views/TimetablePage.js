@@ -19,8 +19,6 @@ export default function TimetablePage() {
     (async () => {
       try {
         const [ttRes, exRes] = await Promise.all([
-      try {
-        const [ttRes, exRes] = await Promise.all([
           axios.get(`${API}/api/timetable?class_name=${className}`, { headers: headers() }),
           axios.get(`${API}/api/timetable/exams`, { headers: headers() })
         ]);
