@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { requireAdmin } from '@/lib/auth';
+import { requireAdmin, hashPassword } from '@/lib/auth';
 
 export async function GET(request: Request) {
   try {
@@ -25,10 +25,27 @@ export async function POST(request: Request) {
     await requireAdmin(request);
     const body = await request.json();
 
-    const { data: staff, error } = await supabase.from('staff').insert(body).select();
-    if (error) throw error;
+    const { data: staffData, error: staffError } = await supabase.from('staff').insert(body).select();
+    if (staffError) throw staffError;
 
-    return NextResponse.json(Array.isArray(body) ? staff : staff[0]);
+    const staffRecord = Array.isArray(staffData) ? staffData[0] : staffData;
+
+    // Automated login creation
+    if (staffRecord.email) {
+      const { data: existingUser } = await supabase.from('users').select('id').eq('email', staffRecord.email.toLowerCase().trim()).single();
+      
+      if (!existingUser) {
+        const passwordHash = await hashPassword('Teacher@123');
+        await supabase.from('users').insert({
+          email: staffRecord.email.toLowerCase().trim(),
+          password_hash: passwordHash,
+          name: staffRecord.name,
+          role: 'teacher'
+        });
+      }
+    }
+
+    return NextResponse.json(staffRecord);
   } catch (error: any) {
     return NextResponse.json({ detail: error.message }, { status: error.message.includes('Admin') ? 403 : 500 });
   }

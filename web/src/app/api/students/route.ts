@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { requireAdmin } from '@/lib/auth';
+import { requireAdmin, hashPassword } from '@/lib/auth';
 
 export async function GET(request: Request) {
   try {
@@ -31,10 +31,35 @@ export async function POST(request: Request) {
     await requireAdmin(request);
     const body = await request.json();
 
-    const { data: student, error } = await supabase.from('students').insert(body).select();
-    if (error) throw error;
+    const { data: studentData, error: studentError } = await supabase.from('students').insert(body).select();
+    if (studentError) throw studentError;
 
-    return NextResponse.json(Array.isArray(body) ? student : student[0]);
+    const studentRecord = Array.isArray(studentData) ? studentData[0] : studentData;
+
+    // Automated parent login creation/linkage
+    if (studentRecord.phone) {
+      const parentEmail = `${studentRecord.phone}@paul.edu`; // Using phone as unique identifier
+      const { data: existingParent } = await supabase.from('users').select('*').eq('email', parentEmail).single();
+      
+      const newChildrenIds = existingParent 
+        ? [...(existingParent.children_ids || []), studentRecord.id]
+        : [studentRecord.id];
+
+      if (existingParent) {
+        await supabase.from('users').update({ children_ids: newChildrenIds }).eq('id', existingParent.id);
+      } else {
+        const passwordHash = await hashPassword('Parent@123');
+        await supabase.from('users').insert({
+          email: parentEmail,
+          password_hash: passwordHash,
+          name: studentRecord.father_name || `Parent of ${studentRecord.name}`,
+          role: 'parent',
+          children_ids: newChildrenIds
+        });
+      }
+    }
+
+    return NextResponse.json(studentRecord);
   } catch (error: any) {
     return NextResponse.json({ detail: error.message }, { status: error.message.includes('Admin') ? 403 : 500 });
   }
