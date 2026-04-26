@@ -26,39 +26,60 @@ export async function GET(request: Request) {
   }
 }
 
+async function createParentLogin(studentRecord: any) {
+  if (!studentRecord?.phone) return;
+  try {
+    const parentEmail = `${studentRecord.phone}@paul.edu`;
+    const { data: existingParent } = await supabase.from('users').select('*').eq('email', parentEmail).single();
+
+    const newChildrenIds = existingParent
+      ? [...(existingParent.children_ids || []), studentRecord.id]
+      : [studentRecord.id];
+
+    if (existingParent) {
+      await supabase.from('users').update({ children_ids: newChildrenIds }).eq('id', existingParent.id);
+    } else {
+      const passwordHash = await hashPassword('Parent@123');
+      await supabase.from('users').insert({
+        email: parentEmail,
+        password_hash: passwordHash,
+        name: studentRecord.father_name || `Parent of ${studentRecord.name}`,
+        role: 'parent',
+        children_ids: newChildrenIds
+      });
+    }
+  } catch (_) {
+    // Non-fatal: don't fail student insert if parent creation errors
+  }
+}
+
 export async function POST(request: Request) {
   try {
     await requireAdmin(request);
     const body = await request.json();
+    const isBulk = Array.isArray(body);
 
-    const { data: studentData, error: studentError } = await supabase.from('students').insert(body).select();
-    if (studentError) throw studentError;
+    // Normalise: always work with an array
+    const records = isBulk ? body : [body];
 
-    const studentRecord = Array.isArray(studentData) ? studentData[0] : studentData;
+    const { data: insertedData, error: insertError } = await supabase
+      .from('students')
+      .insert(records)
+      .select();
 
-    // Automated parent login creation/linkage
-    if (studentRecord.phone) {
-      const parentEmail = `${studentRecord.phone}@paul.edu`; // Using phone as unique identifier
-      const { data: existingParent } = await supabase.from('users').select('*').eq('email', parentEmail).single();
-      
-      const newChildrenIds = existingParent 
-        ? [...(existingParent.children_ids || []), studentRecord.id]
-        : [studentRecord.id];
+    if (insertError) throw insertError;
 
-      if (existingParent) {
-        await supabase.from('users').update({ children_ids: newChildrenIds }).eq('id', existingParent.id);
-      } else {
-        const passwordHash = await hashPassword('Parent@123');
-        await supabase.from('users').insert({
-          email: parentEmail,
-          password_hash: passwordHash,
-          name: studentRecord.father_name || `Parent of ${studentRecord.name}`,
-          role: 'parent',
-          children_ids: newChildrenIds
-        });
-      }
+    // Create parent logins for all inserted students
+    await Promise.all((insertedData || []).map(createParentLogin));
+
+    if (isBulk) {
+      return NextResponse.json({
+        message: `${insertedData?.length ?? 0} students imported successfully`,
+        count: insertedData?.length ?? 0,
+      });
     }
 
+    const studentRecord = Array.isArray(insertedData) ? insertedData[0] : insertedData;
     return NextResponse.json(studentRecord);
   } catch (error: any) {
     return NextResponse.json({ detail: error.message }, { status: error.message.includes('Admin') ? 403 : 500 });

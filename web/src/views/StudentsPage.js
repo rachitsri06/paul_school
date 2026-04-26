@@ -23,9 +23,9 @@ export default function StudentsPage() {
   const navigate = useNavigate();
 
   const [form, setForm] = useState({
-    name: '', roll_no: '', class_name: '1st', gender: 'Male',
-    dob: '', father_name: '', mother_name: '', phone: '', address: '',
-    admission_date: '', blood_group: '', transport_route: '', photo_url: ''
+    name: '', roll_no: '', admission_no: '', class_name: '1st', gender: 'Male', category: 'General', religion: '',
+    dob: '', father_name: '', mother_name: '', phone: '', mother_mobile: '', address: '',
+    admission_date: '', blood_group: '', transport_route: '', transport_stop: '', remarks: ''
   });
 
   const fetchStudents = useCallback(async () => {
@@ -47,7 +47,11 @@ export default function StudentsPage() {
       await axios.post(`${API}/api/students`, form, { headers: headers() });
       toast.success('Student enrolled successfully');
       setShowEnroll(false);
-      setForm({ name: '', roll_no: '', class_name: '1st', gender: 'Male', dob: '', father_name: '', mother_name: '', phone: '', address: '', admission_date: '', blood_group: '', transport_route: '', photo_url: '' });
+      setForm({
+        name: '', roll_no: '', admission_no: '', class_name: '1st', gender: 'Male', category: 'General', religion: '',
+        dob: '', father_name: '', mother_name: '', phone: '', mother_mobile: '', address: '',
+        admission_date: '', blood_group: '', transport_route: '', transport_stop: '', remarks: ''
+      });
       fetchStudents();
     } catch (err) {
       toast.error('Failed to enroll student');
@@ -73,7 +77,7 @@ export default function StudentsPage() {
           {isAdmin && (
             <BulkUpload 
               entityName="Students"
-              templateHeaders={['name', 'roll_no', 'class_name', 'gender', 'dob', 'father_name', 'mother_name', 'phone', 'address', 'blood_group']}
+              templateHeaders={['sr_no', 'admission_no', 'name', 'class_name', 'section', 'gender', 'dob', 'category', 'admission_date', 'father_name', 'mother_name', 'phone', 'mother_mobile', 'address', 'religion', 'transport_route', 'transport_stop', 'remarks', 'blood_group']}
               uploadUrl="/api/students"
               onSuccess={fetchStudents}
             />
@@ -120,11 +124,11 @@ export default function StudentsPage() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {students.map(s => (
-                <tr key={s._id} className="hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => navigate(`/students/${s._id}`)} data-testid={`student-row-${s.roll_no}`}>
+                <tr key={s.id || s._id} className="hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => navigate(`/students/${s.id || s._id}`)} data-testid={`student-row-${s.roll_no}`}>
                   <td className="px-4 py-3 font-mono text-slate-900">{s.roll_no}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-900 flex items-center justify-center text-xs font-bold">{s.name[0]}</div>
+                      <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-900 flex items-center justify-center text-xs font-bold">{s.name ? s.name[0] : '?'}</div>
                       <span className="font-medium text-slate-900">{s.name}</span>
                     </div>
                   </td>
@@ -133,7 +137,7 @@ export default function StudentsPage() {
                   <td className="px-4 py-3 text-slate-600">{s.phone}</td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
-                      <button onClick={() => navigate(`/students/${s._id}`)} className="text-blue-900 hover:text-blue-700 text-xs font-medium" data-testid={`view-student-${s.roll_no}`}><User size={16} /></button>
+                      <button onClick={() => navigate(`/students/${s.id || s._id}`)} className="text-blue-900 hover:text-blue-700 text-xs font-medium" data-testid={`view-student-${s.roll_no}`}><User size={16} /></button>
                       <button onClick={() => setShowIdCard(s)} className="text-emerald-700 hover:text-emerald-600 text-xs font-medium" data-testid={`id-card-${s.roll_no}`}><IdCard size={16} /></button>
                     </div>
                   </td>
@@ -146,19 +150,23 @@ export default function StudentsPage() {
 
       {/* Enroll Modal */}
       <Dialog open={showEnroll} onOpenChange={setShowEnroll}>
-        <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle style={{ fontFamily: 'Manrope' }}>Enroll New Student</DialogTitle>
           </DialogHeader>
           <form onSubmit={handleEnroll} className="space-y-3" data-testid="enroll-form">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               <div>
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Name *</label>
-                <input required value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm mt-1" data-testid="enroll-name" />
+                <input required value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm mt-1" />
               </div>
               <div>
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Roll No *</label>
-                <input required value={form.roll_no} onChange={e => setForm({...form, roll_no: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm mt-1" data-testid="enroll-roll" />
+                <input required value={form.roll_no} onChange={e => setForm({...form, roll_no: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm mt-1" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Admission No</label>
+                <input value={form.admission_no} onChange={e => setForm({...form, admission_no: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm mt-1" />
               </div>
               <div>
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Class</label>
@@ -173,8 +181,20 @@ export default function StudentsPage() {
                 </select>
               </div>
               <div>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Category</label>
+                <input value={form.category} onChange={e => setForm({...form, category: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm mt-1" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Religion</label>
+                <input value={form.religion} onChange={e => setForm({...form, religion: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm mt-1" />
+              </div>
+              <div>
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">DOB</label>
                 <input type="date" value={form.dob} onChange={e => setForm({...form, dob: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm mt-1" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Admn Date</label>
+                <input type="date" value={form.admission_date} onChange={e => setForm({...form, admission_date: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm mt-1" />
               </div>
               <div>
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Father's Name</label>
@@ -185,17 +205,29 @@ export default function StudentsPage() {
                 <input value={form.mother_name} onChange={e => setForm({...form, mother_name: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm mt-1" />
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Phone</label>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Father Mobile</label>
                 <input value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm mt-1" />
               </div>
               <div>
-                <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Blood Group</label>
-                <input value={form.blood_group} onChange={e => setForm({...form, blood_group: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm mt-1" />
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Mother Mobile</label>
+                <input value={form.mother_mobile} onChange={e => setForm({...form, mother_mobile: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm mt-1" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Transport Route</label>
+                <input value={form.transport_route} onChange={e => setForm({...form, transport_route: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm mt-1" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Stop</label>
+                <input value={form.transport_stop} onChange={e => setForm({...form, transport_stop: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm mt-1" />
               </div>
             </div>
             <div>
               <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Address</label>
               <input value={form.address} onChange={e => setForm({...form, address: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm mt-1" />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Remarks</label>
+              <input value={form.remarks} onChange={e => setForm({...form, remarks: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm mt-1" />
             </div>
             <button type="submit" className="w-full bg-blue-900 hover:bg-blue-800 text-white font-medium rounded-md px-4 py-2.5 text-sm transition-colors" data-testid="enroll-submit">Enroll Student</button>
           </form>

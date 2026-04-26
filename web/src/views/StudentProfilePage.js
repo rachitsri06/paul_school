@@ -49,27 +49,27 @@ export default function StudentProfilePage() {
           </div>
           <div className="flex-1">
             <h1 className="text-2xl font-black text-slate-900" style={{ fontFamily: 'Manrope' }}>{student.name}</h1>
-            <p className="text-sm text-slate-500 mt-1">Class {student.class_name}-{student.section} | Roll No: {student.roll_no}</p>
+            <p className="text-sm text-slate-500 mt-1">Class {student.class_name} | Roll No: {student.roll_no} {student.admission_no ? `| Admn No: ${student.admission_no}` : ''}</p>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mt-4">
               <div className="flex items-center gap-2 text-sm text-slate-600">
                 <User size={14} className="text-slate-400" />
-                <span>{student.gender}</span>
+                <span>{student.gender} {student.category ? `(${student.category})` : ''}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-slate-600">
                 <Calendar size={14} className="text-slate-400" />
-                <span>{student.dob}</span>
+                <span>DOB: {student.dob}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-slate-600">
                 <Heart size={14} className="text-slate-400" />
-                <span>{student.blood_group || 'N/A'}</span>
+                <span>Bloods: {student.blood_group || 'N/A'}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-slate-600">
                 <Bus size={14} className="text-slate-400" />
-                <span>{student.transport_route || 'None'}</span>
+                <span>{student.transport_route || 'No Transport'} {student.transport_stop ? `(${student.transport_stop})` : ''}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-slate-600">
                 <Phone size={14} className="text-slate-400" />
-                <span>{student.phone}</span>
+                <span>{student.phone} {student.mother_mobile ? `/ ${student.mother_mobile}` : ''}</span>
               </div>
               <div className="flex items-center gap-2 text-sm text-slate-600 col-span-2">
                 <MapPin size={14} className="text-slate-400" />
@@ -79,6 +79,8 @@ export default function StudentProfilePage() {
             <div className="flex gap-4 mt-3 text-sm text-slate-600">
               <span>Father: <strong>{student.father_name}</strong></span>
               <span>Mother: <strong>{student.mother_name}</strong></span>
+              {student.religion && <span>Religion: <strong>{student.religion}</strong></span>}
+              {student.admission_date && <span>Admission: <strong>{student.admission_date}</strong></span>}
             </div>
           </div>
         </div>
