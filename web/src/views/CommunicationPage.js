@@ -38,13 +38,11 @@ export default function CommunicationPage() {
     e.preventDefault();
     setSending(true);
     try {
-      const payload = { ...form, recipient: form.recipients };
+      const payload = { ...form, recipient: form.recipients === 'custom' ? form.customRecipient : form.recipients };
       const { data } = await axios.post(`${API}/api/communications`, payload, { headers: headers() });
       if (form.type === 'sms' || form.type === 'whatsapp') {
-        const sent = data.sent_count || 0;
-        const failed = data.failed_count || 0;
-        if (sent > 0) {
-          toast.success(`${form.type.toUpperCase()} sent to ${sent} recipients${failed > 0 ? ` (${failed} failed)` : ''}`);
+        if (data.status === 'sent') {
+          toast.success(`${form.type.toUpperCase()} sent successfully!`);
         } else {
           toast.error(`Failed to send ${form.type.toUpperCase()}. Check Twilio config or phone numbers.`);
         }
@@ -228,20 +226,18 @@ export default function CommunicationPage() {
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Recipients</label>
-                <input list="recipients-list" value={form.recipients} onChange={e => setForm({...form, recipients: e.target.value})} placeholder="e.g. +919876543210 or 'All Students'" className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm mt-1" />
-                <datalist id="recipients-list">
-                  <option value="All Students" />
-                  <option value="All Parents" />
-                  <option value="All Staff" />
-                  <option value="Class 10-A Parents" />
-                  <option value="Class 9-A Parents" />
-                  <option value="Class 8-A Parents" />
-                </datalist>
-                <p className="text-[10px] text-slate-400 mt-1">Type custom phone/name, or choose group.</p>
+                <select value={form.recipients} onChange={e => setForm({...form, recipients: e.target.value})} className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm mt-1">
+                  <option>All Students</option><option>All Parents</option><option>All Staff</option><option>All</option>
+                  <option>Class 10-A Parents</option><option>Class 9-A Parents</option><option>Class 8-A Parents</option>
+                  <option value="custom">Custom Phone Number...</option>
+                </select>
+                {form.recipients === 'custom' && (
+                  <input type="text" placeholder="+918920282473" value={form.customRecipient || ''} onChange={e => setForm({...form, customRecipient: e.target.value})} className="w-full px-3 py-2 border border-blue-400 focus:ring-2 ring-blue-100 rounded-md text-sm mt-2" data-testid="comm-custom-recipient" />
+                )}
               </div>
               <div>
                 <label className="text-xs font-semibold text-slate-500 uppercase tracking-widest">Sender</label>
-                <input value={form.sender} onChange={e => setForm({...form, sender: e.target.value})} placeholder="Principal" className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm mt-1" />
+                <input value="Twilio System" disabled className="w-full px-3 py-2 border border-slate-200 bg-slate-50 text-slate-500 rounded-md text-sm mt-1 cursor-not-allowed" title="Sender is locked to the registered Twilio Number" />
               </div>
             </div>
             <button type="submit" disabled={sending} className="w-full bg-blue-900 hover:bg-blue-800 text-white font-medium rounded-md px-4 py-2.5 text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-60" data-testid="comm-submit">
