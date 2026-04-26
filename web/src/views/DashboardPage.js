@@ -2,12 +2,14 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Users, UserCog, DollarSign, ClipboardCheck, Bell, TrendingUp } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
+import { useNavigate } from 'react-router-dom';
 
 const API = "";
 
 export default function DashboardPage() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -29,10 +31,10 @@ export default function DashboardPage() {
   if (loading) return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-3 border-blue-900 border-t-transparent rounded-full animate-spin" /></div>;
 
   const statCards = [
-    { label: "Total Students", value: stats?.total_students || 0, icon: Users, color: "bg-blue-50 text-blue-900", iconBg: "bg-blue-100" },
-    { label: "Total Staff", value: stats?.total_staff || 0, icon: UserCog, color: "bg-emerald-50 text-emerald-800", iconBg: "bg-emerald-100" },
-    { label: "Fees Collected", value: `Rs ${(stats?.total_fees_collected || 0).toLocaleString()}`, icon: DollarSign, color: "bg-amber-50 text-amber-800", iconBg: "bg-amber-100" },
-    { label: "Today's Attendance", value: `${stats?.attendance_rate || 0}%`, icon: ClipboardCheck, color: "bg-violet-50 text-violet-800", iconBg: "bg-violet-100" },
+    { label: "Total Students", value: stats?.total_students || 0, icon: Users, color: "bg-blue-50 text-blue-900", iconBg: "bg-blue-100", link: "/students" },
+    { label: "Total Staff", value: stats?.total_staff || 0, icon: UserCog, color: "bg-emerald-50 text-emerald-800", iconBg: "bg-emerald-100", link: "/staff" },
+    { label: "Fees Collected", value: `Rs ${(stats?.total_fees_collected || 0).toLocaleString()}`, icon: DollarSign, color: "bg-amber-50 text-amber-800", iconBg: "bg-amber-100", link: "/fees" },
+    { label: "Today's Attendance", value: `${stats?.attendance_rate || 0}%`, icon: ClipboardCheck, color: "bg-violet-50 text-violet-800", iconBg: "bg-violet-100", link: "/attendance" },
   ];
 
   const chartData = (stats?.class_attendance || []).map(c => ({
@@ -56,8 +58,13 @@ export default function DashboardPage() {
 
       {/* Stat Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" data-testid="stats-grid">
-        {statCards.map(({ label, value, icon: Icon, color, iconBg }) => (
-          <div key={label} className={`${color} rounded-lg border border-slate-200 p-5 transition-shadow hover:shadow-md`} data-testid={`stat-${label.toLowerCase().replace(/ /g, '-')}`}>
+        {statCards.map(({ label, value, icon: Icon, color, iconBg, link }) => (
+          <div 
+            key={label} 
+            onClick={() => navigate(link)}
+            className={`${color} rounded-lg border border-slate-200 p-5 transition-all cursor-pointer hover:-translate-y-1 hover:shadow-lg`} 
+            data-testid={`stat-${label.toLowerCase().replace(/ /g, '-')}`}
+          >
             <div className="flex items-center justify-between mb-3">
               <div className={`w-10 h-10 ${iconBg} rounded-lg flex items-center justify-center`}>
                 <Icon size={20} />
