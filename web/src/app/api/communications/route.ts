@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 
 export async function GET(request: Request) {
   try {
-    const { data, error } = await supabase.from('communications').select('*').order('sent_at', { ascending: false }).limit(100);
+    const { data, error } = await supabase.from('communications').select('*').order('created_at', { ascending: false }).limit(100);
     if (error) throw error;
 
     return NextResponse.json(data || []);
@@ -16,13 +16,13 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { type, recipient, message } = body;
+    const { type, recipient, message, title, sender } = body;
 
     if (!type || !recipient || !message) {
       return NextResponse.json({ detail: "Missing type, recipient, or message" }, { status: 400 });
     }
 
-    let status = 'sent';
+    let status = 'Sent';
 
     // Attempt to send via Twilio if configured
     try {
@@ -44,13 +44,15 @@ export async function POST(request: Request) {
         });
       }
     } catch (twilioErr: any) {
-      status = 'failed';
+      status = 'Failed';
     }
 
     const { data: record, error } = await supabase.from('communications').insert({
       type,
-      recipient,
+      title: title || 'No Title',
       message,
+      sender: sender || 'Admin',
+      recipients: recipient, // Map front-end recipient to DB's recipients column
       status
     }).select().single();
 
@@ -58,6 +60,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(record);
   } catch (error: any) {
+    console.error(error);
     return NextResponse.json({ detail: error.message }, { status: 500 });
   }
 }
