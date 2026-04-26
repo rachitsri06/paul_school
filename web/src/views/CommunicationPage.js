@@ -54,7 +54,9 @@ export default function CommunicationPage() {
       setShowNew(false);
       setForm({ type: 'notice', title: '', message: '', recipients: 'All Students', sender: '' });
       fetchAll();
-    } catch { toast.error('Failed to send'); }
+    } catch (err) { 
+      toast.error('Failed to send: ' + (err.response?.data?.detail || err.message)); 
+    }
     finally { setSending(false); }
   };
 

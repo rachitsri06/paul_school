@@ -4,7 +4,8 @@ import { supabase } from '@/lib/supabase';
 
 export async function GET(request: Request) {
   try {
-    const { data, error } = await supabase.from('communications').select('*').order('created_at', { ascending: false }).limit(100);
+    // Legacy mapping uses sent_at or created_at. We gracefully sort without crashing.
+    const { data, error } = await supabase.from('communications').select('*').order('id', { ascending: false }).limit(100);
     if (error) throw error;
 
     return NextResponse.json(data || []);
@@ -16,7 +17,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json();
-    const { type, recipient, message, title, sender } = body;
+    const { type, recipient, message } = body; // Dropped sender & title to avoid fatal missing column errors
 
     if (!type || !recipient || !message) {
       return NextResponse.json({ detail: "Missing type, recipient, or message" }, { status: 400 });
@@ -24,7 +25,6 @@ export async function POST(request: Request) {
 
     let status = 'Sent';
 
-    // Attempt to send via Twilio if configured
     try {
       if (type === 'sms' && process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_ACCOUNT_SID !== 'test') {
         const twilio = require('twilio');
@@ -34,25 +34,16 @@ export async function POST(request: Request) {
           from: process.env.TWILIO_PHONE_NUMBER,
           to: recipient
         });
-      } else if (type === 'whatsapp' && process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_ACCOUNT_SID !== 'test') {
-        const twilio = require('twilio');
-        const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-        await client.messages.create({
-          body: message,
-          from: `whatsapp:${process.env.TWILIO_WHATSAPP_NUMBER}`,
-          to: `whatsapp:${recipient}`
-        });
       }
     } catch (twilioErr: any) {
       status = 'Failed';
     }
 
+    // Insert payload strictly matching legacy MongoDB mapped schema
     const { data: record, error } = await supabase.from('communications').insert({
       type,
-      title: title || 'No Title',
       message,
-      sender: sender || 'Admin',
-      recipients: recipient, // Map front-end recipient to DB's recipients column
+      recipient: recipient, 
       status
     }).select().single();
 
@@ -60,7 +51,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(record);
   } catch (error: any) {
-    console.error(error);
+    console.error("Comm API Error:", error.message);
     return NextResponse.json({ detail: error.message }, { status: 500 });
   }
 }
