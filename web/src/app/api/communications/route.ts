@@ -23,7 +23,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ detail: "Missing type, recipient, or message" }, { status: 400 });
     }
 
-    let status = 'Sent';
+    let status = 'sent';
 
     try {
       if (type === 'sms' && process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_ACCOUNT_SID !== 'test') {
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
         });
       }
     } catch (twilioErr: any) {
-      status = 'Failed';
+      status = 'failed';
     }
 
     // Insert payload strictly matching legacy MongoDB mapped schema
