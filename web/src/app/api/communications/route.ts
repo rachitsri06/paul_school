@@ -34,6 +34,15 @@ export async function POST(request: Request) {
           from: process.env.TWILIO_PHONE_NUMBER,
           to: recipient
         });
+      } else if (type === 'whatsapp' && process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_ACCOUNT_SID !== 'test') {
+        const twilio = require('twilio');
+        const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+        const waRecipient = recipient.startsWith('whatsapp:') ? recipient : `whatsapp:${recipient}`;
+        await client.messages.create({
+          body: message,
+          from: `whatsapp:${process.env.TWILIO_WHATSAPP_NUMBER || process.env.TWILIO_PHONE_NUMBER || '+14155238886'}`,
+          to: waRecipient
+        });
       }
     } catch (twilioErr: any) {
       status = 'failed';
