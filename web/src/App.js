@@ -22,6 +22,7 @@ import TransportPage from "@/views/TransportPage";
 import LibraryPage from "@/views/LibraryPage";
 import ReportsPage from "@/views/ReportsPage";
 import SettingsPage from "@/views/SettingsPage";
+import TeacherRegistrationPage from "@/views/TeacherRegistrationPage";
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -57,6 +58,7 @@ function App() {
         <Toaster position="top-right" richColors />
         <Routes>
           <Route path="/login" element={<LoginPage />} />
+          <Route path="/teacher-signup" element={<TeacherRegistrationPage />} />
           <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<SmartDashboard />} />
             <Route path="students" element={<StudentsPage />} />
