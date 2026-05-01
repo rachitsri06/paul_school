@@ -6,9 +6,11 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const class_name = searchParams.get('class_name') || '';
+    const session = searchParams.get('session') || '';
 
     let query = supabase.from('homework').select('*');
     if (class_name) query = query.eq('class_name', class_name);
+    if (session) query = query.eq('session', session);
 
     const { data, error } = await query.order('created_at', { ascending: false });
     if (error) throw error;
@@ -23,7 +25,10 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
 
-    const { data: hw, error } = await supabase.from('homework').insert(body).select().single();
+    const { data: hw, error } = await supabase.from('homework').insert({
+      ...body,
+      session: body.session || '2024-2025',
+    }).select().single();
     if (error) throw error;
 
     return NextResponse.json(hw);

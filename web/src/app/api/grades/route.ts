@@ -7,10 +7,12 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const student_id = searchParams.get('student_id') || '';
     const class_name = searchParams.get('class_name') || '';
+    const session = searchParams.get('session') || '';
 
     let query = supabase.from('grades').select('*');
     if (student_id) query = query.eq('student_id', student_id);
     if (class_name) query = query.eq('class_name', class_name);
+    if (session) query = query.eq('session', session);
 
     const { data, error } = await query.order('created_at', { ascending: false });
     if (error) throw error;

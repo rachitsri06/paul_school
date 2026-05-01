@@ -7,10 +7,12 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url);
     const class_name = searchParams.get('class_name') || '';
     const date = searchParams.get('date') || '';
+    const session = searchParams.get('session') || '';
 
     let query = supabase.from('attendance').select('*');
     if (class_name) query = query.eq('class_name', class_name);
     if (date) query = query.eq('date', date);
+    if (session) query = query.eq('session', session);
 
     const { data: records, error } = await query.order('created_at', { ascending: false }).limit(500);
     if (error) throw error;

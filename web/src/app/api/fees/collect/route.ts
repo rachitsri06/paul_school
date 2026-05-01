@@ -8,8 +8,14 @@ export async function POST(request: Request) {
 
     const { data, error } = await supabase.from('fee_payments').insert({
       student_id: body.student_id,
+      student_name: body.student_name,
+      class_name: body.class_name,
       amount: body.amount,
-      payment_method: body.payment_method || 'cash',
+      payment_mode: body.payment_mode || 'Cash',
+      fee_type: body.fee_type || 'Monthly',
+      month: body.month,
+      session: body.session || '2024-2025',
+      payment_method: body.payment_method || body.payment_mode || 'cash',
       receipt_number: body.receipt_number || `REC-${Date.now()}`,
       status: 'completed',
     }).select().single();
