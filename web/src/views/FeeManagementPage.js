@@ -3,24 +3,26 @@ import axios from 'axios';
 import { DollarSign, Printer, Bell, Plus } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { useSession } from '@/contexts/SessionContext';
 
 const API = "";
 const headers = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
 
 export default function FeeManagementPage() {
+  const { session } = useSession();
   const [payments, setPayments] = useState([]);
   const [students, setStudents] = useState([]);
   const [showCollect, setShowCollect] = useState(false);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ student_id: '', student_name: '', class_name: '', amount: '', payment_mode: 'Cash', fee_type: 'Monthly', month: '' });
 
-  useEffect(() => { fetchData(); }, []);
+  useEffect(() => { fetchData(); }, [session]);
 
   const fetchData = async () => {
     try {
       const [payRes, studRes] = await Promise.all([
-        axios.get(`${API}/api/fees/payments`, { headers: headers() }),
-        axios.get(`${API}/api/students`, { headers: headers() })
+        axios.get(`${API}/api/fees/payments?session=${session}`, { headers: headers() }),
+        axios.get(`${API}/api/students?session=${session}`, { headers: headers() })
       ]);
       setPayments(payRes.data);
       setStudents(studRes.data);
@@ -31,7 +33,7 @@ export default function FeeManagementPage() {
   const handleCollect = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${API}/api/fees/collect`, { ...form, amount: parseFloat(form.amount) }, { headers: headers() });
+      await axios.post(`${API}/api/fees/collect`, { ...form, amount: parseFloat(form.amount), session }, { headers: headers() });
       toast.success('Fee collected successfully');
       setShowCollect(false);
       fetchData();

@@ -2,11 +2,13 @@ import React, { useEffect, useState, useCallback } from 'react';
 import axios from 'axios';
 import { CheckCircle, XCircle, Clock, CalendarOff, CheckCheck, Bell, Send } from 'lucide-react';
 import { toast } from 'sonner';
+import { useSession } from '@/contexts/SessionContext';
 
 const API = "";
 const headers = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
 
 export default function AttendancePage() {
+  const { session } = useSession();
   const [students, setStudents] = useState([]);
   const [records, setRecords] = useState({});
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
@@ -18,8 +20,8 @@ export default function AttendancePage() {
     setLoading(true);
     try {
       const [studRes, attRes] = await Promise.all([
-        axios.get(`${API}/api/students?class_name=${className}`, { headers: headers() }),
-        axios.get(`${API}/api/attendance?date=${date}&class_name=${className}`, { headers: headers() })
+        axios.get(`${API}/api/students?class_name=${className}&session=${session}`, { headers: headers() }),
+        axios.get(`${API}/api/attendance?date=${date}&class_name=${className}&session=${session}`, { headers: headers() })
       ]);
       setStudents(studRes.data);
       const recs = {};
@@ -29,7 +31,7 @@ export default function AttendancePage() {
       setRecords(recs);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
-  }, [date, className]);
+  }, [date, className, session]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -51,7 +53,7 @@ export default function AttendancePage() {
         student_id: s._id, student_name: s.name, roll_no: s.roll_no, status: records[s._id] || 'Present'
       }));
       const { data } = await axios.post(`${API}/api/attendance/bulk`, {
-        date, class_name: className, records: recordsList
+        date, class_name: className, session, records: recordsList
       }, { headers: headers() });
       toast.success(`Attendance saved! P:${data.present} A:${data.absent} L:${data.late} Lv:${data.leave}`);
     } catch (err) { toast.error('Failed to save attendance'); }

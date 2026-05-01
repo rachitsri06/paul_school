@@ -3,11 +3,13 @@ import axios from 'axios';
 import { Plus, BookOpen, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { useSession } from '@/contexts/SessionContext';
 
 const API = "";
 const headers = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
 
 export default function HomeworkPage() {
+  const { session } = useSession();
   const [homework, setHomework] = useState([]);
   const [showAssign, setShowAssign] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -15,11 +17,11 @@ export default function HomeworkPage() {
 
   useEffect(() => {
     fetchHomework();
-  }, []);
+  }, [session]);
 
   const fetchHomework = async () => {
     try {
-      const { data } = await axios.get(`${API}/api/homework`, { headers: headers() });
+      const { data } = await axios.get(`${API}/api/homework?session=${session}`, { headers: headers() });
       setHomework(data);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
@@ -28,7 +30,7 @@ export default function HomeworkPage() {
   const handleAssign = async (e) => {
     e.preventDefault();
     try {
-      await axios.post(`${API}/api/homework`, form, { headers: headers() });
+      await axios.post(`${API}/api/homework`, { ...form, session }, { headers: headers() });
       toast.success('Homework assigned successfully');
       setShowAssign(false);
       setForm({ title: '', subject: 'Mathematics', class_name: '1st', due_date: '', description: '', assigned_by: '' });

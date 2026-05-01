@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { FileText, Download, Loader2, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
+import { useSession } from '@/contexts/SessionContext';
 
 const API = "";
 const headers = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
@@ -22,6 +23,7 @@ const REPORTS = [
 ];
 
 export default function ReportsPage() {
+  const { session } = useSession();
   const [reportData, setReportData] = useState(null);
   const [activeReport, setActiveReport] = useState('');
   const [loading, setLoading] = useState(false);
@@ -33,7 +35,7 @@ export default function ReportsPage() {
     setActiveReport(reportId);
     setAiReport('');
     try {
-      const { data } = await axios.get(`${API}/api/reports/${reportId}`, { headers: headers() });
+      const { data } = await axios.get(`${API}/api/reports/${reportId}?session=${session}`, { headers: headers() });
       setReportData(data);
       toast.success('Report generated');
     } catch { toast.error('Failed to generate report'); }

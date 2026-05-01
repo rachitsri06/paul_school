@@ -3,10 +3,12 @@ import axios from 'axios';
 import { Users, UserCog, DollarSign, ClipboardCheck, Bell, TrendingUp } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from 'recharts';
 import { useNavigate } from 'react-router-dom';
+import { useSession } from '@/contexts/SessionContext';
 
 const API = "";
 
 export default function DashboardPage() {
+  const { session } = useSession();
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -15,7 +17,7 @@ export default function DashboardPage() {
     const fetchStats = async () => {
       try {
         const token = localStorage.getItem('token');
-        const { data } = await axios.get(`${API}/api/dashboard/stats`, {
+        const { data } = await axios.get(`${API}/api/dashboard/stats?session=${session}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setStats(data);
@@ -26,7 +28,7 @@ export default function DashboardPage() {
       }
     };
     fetchStats();
-  }, []);
+  }, [session]);
 
   if (loading) return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-3 border-blue-900 border-t-transparent rounded-full animate-spin" /></div>;
 
@@ -48,7 +50,7 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight" style={{ fontFamily: 'Manrope' }}>Dashboard</h1>
-          <p className="text-sm text-slate-500 mt-1">Welcome back! Here's what's happening at St. Paul's School.</p>
+          <p className="text-sm text-slate-500 mt-1">Welcome back! Session <span className="font-semibold text-blue-900">{session}</span> · St. Paul's School</p>
         </div>
         <div className="flex items-center gap-2 text-sm text-slate-500">
           <TrendingUp size={16} />

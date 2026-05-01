@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { Outlet, NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSession, SESSIONS } from '@/contexts/SessionContext';
 import {
   LayoutDashboard, Users, ClipboardCheck, Calendar, GraduationCap, BookOpen,
   DollarSign, CreditCard, UserCog, Wallet, MessageSquare, Bus, Library,
-  BarChart3, Settings, LogOut, Menu, X, ChevronRight
+  BarChart3, Settings, LogOut, Menu, X, ChevronRight, CalendarRange
 } from 'lucide-react';
 
 const SCHOOL_LOGO = "https://customer-assets.emergentagent.com/job_school-hub-495/artifacts/ud1nrved_17104.jpg";
@@ -29,6 +30,7 @@ const navItems = [
 
 export default function Layout() {
   const { user, logout } = useAuth();
+  const { session, changeSession } = useSession();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const userRole = user?.role || 'teacher';
@@ -54,7 +56,7 @@ export default function Layout() {
           <img src={SCHOOL_LOGO} alt="St. Paul's School" className="w-10 h-10 rounded-full object-cover bg-white" />
           <div className="flex-1 min-w-0">
             <h1 className="text-sm font-bold text-white truncate" style={{ fontFamily: 'Manrope' }}>St. Paul's School</h1>
-            <p className="text-xs text-slate-400 truncate">Maharajganj</p>
+            <p className="text-xs text-slate-400 truncate">Maharajganj &middot; {session}</p>
           </div>
           <button onClick={() => setSidebarOpen(false)} className="lg:hidden text-slate-400 hover:text-white">
             <X size={20} />
@@ -122,7 +124,22 @@ export default function Layout() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <span className="text-xs text-slate-500 hidden sm:inline">Academic Year 2025-26</span>
+              {/* Session Selector */}
+              <div className="flex items-center gap-1.5">
+                <CalendarRange size={14} className="text-blue-900 hidden sm:inline" />
+                <select
+                  id="session-selector"
+                  value={session}
+                  onChange={e => changeSession(e.target.value)}
+                  className="text-xs font-semibold text-blue-900 border border-blue-200 bg-blue-50 hover:bg-blue-100 rounded-md px-2 py-1 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-900 transition-colors"
+                  title="Select Academic Session"
+                  data-testid="session-selector"
+                >
+                  {SESSIONS.map(s => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
+              </div>
               <div className="w-8 h-8 rounded-full bg-blue-900 flex items-center justify-center text-xs font-bold text-white">
                 {(user?.name || "A")[0].toUpperCase()}
               </div>

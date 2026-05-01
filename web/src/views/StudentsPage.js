@@ -5,6 +5,7 @@ import { Search, Plus, Filter, User, IdCard, X } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSession } from '@/contexts/SessionContext';
 import BulkUpload from '@/components/BulkUpload';
 
 const API = "";
@@ -13,6 +14,7 @@ const headers = () => ({ Authorization: `Bearer ${token()}` });
 
 export default function StudentsPage() {
   const { user } = useAuth();
+  const { session } = useSession();
   const isAdmin = user?.role === 'admin';
   const [students, setStudents] = useState([]);
   const [search, setSearch] = useState('');
@@ -33,11 +35,12 @@ export default function StudentsPage() {
       const params = new URLSearchParams();
       if (search) params.set('search', search);
       if (classFilter) params.set('class_name', classFilter);
+      if (session) params.set('session', session);
       const { data } = await axios.get(`${API}/api/students?${params}`, { headers: headers() });
       setStudents(data);
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
-  }, [search, classFilter]);
+  }, [search, classFilter, session]);
 
   useEffect(() => { fetchStudents(); }, [fetchStudents]);
 
@@ -260,7 +263,7 @@ export default function StudentsPage() {
                 </div>
               </div>
               <div className="bg-slate-50 p-2 text-center border-t">
-                <p className="text-[10px] text-slate-500">Academic Year 2025-2026</p>
+                <p className="text-[10px] text-slate-500">Academic Year {session}</p>
               </div>
             </div>
           )}

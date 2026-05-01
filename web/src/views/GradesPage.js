@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Save, Trophy, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
+import { useSession } from '@/contexts/SessionContext';
 
 const API = "";
 const headers = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}` });
@@ -9,6 +10,7 @@ const headers = () => ({ Authorization: `Bearer ${localStorage.getItem('token')}
 const autoGrade = (marks) => marks >= 90 ? 'A+' : marks >= 80 ? 'A' : marks >= 70 ? 'B+' : marks >= 60 ? 'B' : marks >= 50 ? 'C' : 'D';
 
 export default function GradesPage() {
+  const { session } = useSession();
   const [grades, setGrades] = useState([]);
   const [className, setClassName] = useState('1st');
   const [exam, setExam] = useState('Mid-Term');
@@ -17,11 +19,11 @@ export default function GradesPage() {
   useEffect(() => {
     (async () => {
       try {
-        const { data } = await axios.get(`${API}/api/grades?class_name=${className}&exam=${exam}`, { headers: headers() });
+        const { data } = await axios.get(`${API}/api/grades?class_name=${className}&exam=${exam}&session=${session}`, { headers: headers() });
         setGrades(data);
       } catch (err) { console.error(err); }
     })();
-  }, [className, exam]);
+  }, [className, exam, session]);
 
   const updateMark = (studentId, subject, marks) => {
     const m = Math.min(100, Math.max(0, parseInt(marks) || 0));
@@ -33,7 +35,7 @@ export default function GradesPage() {
   const saveGrades = async () => {
     setSaving(true);
     try {
-      await axios.post(`${API}/api/grades/save`, { records: grades }, { headers: headers() });
+      await axios.post(`${API}/api/grades/save`, { records: grades, session }, { headers: headers() });
       toast.success('Grades saved successfully');
     } catch { toast.error('Failed to save grades'); }
     finally { setSaving(false); }

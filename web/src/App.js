@@ -2,6 +2,7 @@ import React from "react";
 import "@/App.css";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { SessionProvider } from "@/contexts/SessionContext";
 import { Toaster } from "@/components/ui/sonner";
 import Layout from "@/components/Layout";
 import LoginPage from "@/views/LoginPage";
@@ -53,6 +54,7 @@ function SmartDashboard() {
 
 function App() {
   return (
+    <SessionProvider>
     <AuthProvider>
       <BrowserRouter>
         <Toaster position="top-right" richColors />
@@ -80,6 +82,7 @@ function App() {
         </Routes>
       </BrowserRouter>
     </AuthProvider>
+    </SessionProvider>
   );
 }
 
