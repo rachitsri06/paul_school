@@ -12,18 +12,43 @@ const autoGrade = (marks) => marks >= 90 ? 'A+' : marks >= 80 ? 'A' : marks >= 7
 export default function GradesPage() {
   const { session } = useSession();
   const [grades, setGrades] = useState([]);
+  const [students, setStudents] = useState([]);
   const [className, setClassName] = useState('1st');
   const [exam, setExam] = useState('Mid-Term');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     (async () => {
-      try {
-        const { data } = await axios.get(`${API}/api/grades?class_name=${className}&exam=${exam}&session=${session}`, { headers: headers() });
-        setGrades(data);
+        const [gradesRes, studentsRes] = await Promise.all([
+          axios.get(`${API}/api/grades?class_name=${className}&exam=${exam}&session=${session}`, { headers: headers() }),
+          axios.get(`${API}/api/students?class_name=${className}&session=${session}`, { headers: headers() })
+        ]);
+        setGrades(gradesRes.data);
+        setStudents(studentsRes.data);
       } catch (err) { console.error(err); }
     })();
   }, [className, exam, session]);
+
+  const initBlankGradebook = () => {
+    const defaultSubjects = ['English', 'Hindi', 'Mathematics', 'EVS', 'GK'];
+    const newGrades = [];
+    students.forEach(s => {
+      defaultSubjects.forEach(subj => {
+        newGrades.push({
+          student_id: s.id || s._id,
+          student_name: s.name,
+          roll_no: s.roll_no,
+          class_name: className,
+          session: session,
+          exam: exam,
+          subject: subj,
+          marks_obtained: 0,
+          grade: 'D'
+        });
+      });
+    });
+    setGrades(newGrades);
+  };
 
   const updateMark = (studentId, subject, marks) => {
     const m = Math.min(100, Math.max(0, parseInt(marks) || 0));
@@ -83,81 +108,102 @@ export default function GradesPage() {
         </select>
       </div>
 
-      {/* Class Stats */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
-          <p className="text-xl font-bold text-blue-900">{classAvg}</p>
-          <p className="text-xs text-blue-700 font-semibold">Class Average</p>
+      {grades.length === 0 && students.length > 0 && (
+        <div className="bg-white p-8 rounded-lg border border-slate-200 text-center">
+          <Trophy size={48} className="mx-auto text-slate-300 mb-4" />
+          <h3 className="text-lg font-bold text-slate-900 mb-2">No Grades Found</h3>
+          <p className="text-slate-500 mb-6 max-w-md mx-auto">There are no grades recorded for Class {className} for the {exam} exam. Click below to generate an empty gradebook for the {students.length} enrolled students.</p>
+          <button onClick={initBlankGradebook} className="bg-blue-900 hover:bg-blue-800 text-white font-medium px-6 py-2.5 rounded-md transition-colors">
+            Initialize Gradebook
+          </button>
         </div>
-        <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-center">
-          <p className="text-xl font-bold text-emerald-700">{highest}</p>
-          <p className="text-xs text-emerald-600 font-semibold">Highest Marks</p>
-        </div>
-        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-center">
-          <p className="text-xl font-bold text-amber-700">{passRate}%</p>
-          <p className="text-xs text-amber-600 font-semibold">Pass Rate</p>
-        </div>
-        <div className="bg-violet-50 border border-violet-200 rounded-lg p-3 text-center">
-          <p className="text-xl font-bold text-violet-700">{Object.keys(studentMap).length}</p>
-          <p className="text-xs text-violet-600 font-semibold">Students</p>
-        </div>
-      </div>
+      )}
 
-      {/* Marks Table */}
-      <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm" data-testid="grades-table">
-            <thead className="bg-slate-50 border-b border-slate-200">
-              <tr>
-                <th className="px-3 py-3 font-semibold text-slate-600 text-xs uppercase tracking-widest sticky left-0 bg-slate-50 z-10">Roll</th>
-                <th className="px-3 py-3 font-semibold text-slate-600 text-xs uppercase tracking-widest sticky left-[60px] bg-slate-50 z-10">Student</th>
-                {subjects.map(s => <th key={s} className="px-3 py-3 font-semibold text-slate-600 text-xs uppercase tracking-widest text-center min-w-[90px]">{s}</th>)}
-                <th className="px-3 py-3 font-semibold text-slate-600 text-xs uppercase tracking-widest text-center">Total</th>
-                <th className="px-3 py-3 font-semibold text-slate-600 text-xs uppercase tracking-widest text-center">Rank</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
-              {rankings.map((r, idx) => {
-                const s = studentMap[r.id];
-                return (
-                  <tr key={r.id} className="hover:bg-slate-50">
-                    <td className="px-3 py-2 font-mono text-slate-800 sticky left-0 bg-white z-10">{r.roll_no}</td>
-                    <td className="px-3 py-2 font-medium text-slate-900 sticky left-[60px] bg-white z-10 whitespace-nowrap">{r.name}</td>
-                    {subjects.map(subj => {
-                      const g = s.subjects[subj];
-                      if (!g) return <td key={subj} className="px-3 py-2 text-center text-slate-300">-</td>;
-                      return (
-                        <td key={subj} className="px-2 py-2 text-center">
-                          <div className="flex items-center justify-center gap-1">
-                            <input
-                              type="number" min="0" max="100"
-                              value={g.marks_obtained}
-                              onChange={e => updateMark(r.id, subj, e.target.value)}
-                              className="w-14 px-1.5 py-1 border border-slate-200 rounded text-xs text-center focus:ring-1 focus:ring-blue-900 focus:border-transparent outline-none"
-                              data-testid={`mark-${r.roll_no}-${subj}`}
-                            />
-                            <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${g.grade === 'A+' || g.grade === 'A' ? 'bg-emerald-100 text-emerald-800' : g.grade === 'B+' || g.grade === 'B' ? 'bg-blue-100 text-blue-800' : g.grade === 'C' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'}`}>
-                              {g.grade}
-                            </span>
-                          </div>
-                        </td>
-                      );
-                    })}
-                    <td className="px-3 py-2 text-center font-bold text-slate-900">{r.total}</td>
-                    <td className="px-3 py-2 text-center">
-                      {idx < 3 ? (
-                        <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-600"><Trophy size={12} />{idx + 1}</span>
-                      ) : (
-                        <span className="text-xs text-slate-500">{idx + 1}</span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
+      {grades.length === 0 && students.length === 0 && (
+        <div className="bg-white p-8 rounded-lg border border-slate-200 text-center text-slate-500">
+          No students enrolled in Class {className} for this session.
         </div>
-      </div>
+      )}
+
+      {grades.length > 0 && (
+        <>
+          {/* Class Stats */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 text-center">
+              <p className="text-xl font-bold text-blue-900">{classAvg}</p>
+              <p className="text-xs text-blue-700 font-semibold">Class Average</p>
+            </div>
+            <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-3 text-center">
+              <p className="text-xl font-bold text-emerald-700">{highest}</p>
+              <p className="text-xs text-emerald-600 font-semibold">Highest Marks</p>
+            </div>
+            <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-center">
+              <p className="text-xl font-bold text-amber-700">{passRate}%</p>
+              <p className="text-xs text-amber-600 font-semibold">Pass Rate</p>
+            </div>
+            <div className="bg-violet-50 border border-violet-200 rounded-lg p-3 text-center">
+              <p className="text-xl font-bold text-violet-700">{Object.keys(studentMap).length}</p>
+              <p className="text-xs text-violet-600 font-semibold">Students</p>
+            </div>
+          </div>
+
+          {/* Marks Table */}
+          <div className="bg-white rounded-lg border border-slate-200 shadow-sm overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm" data-testid="grades-table">
+                <thead className="bg-slate-50 border-b border-slate-200">
+                  <tr>
+                    <th className="px-3 py-3 font-semibold text-slate-600 text-xs uppercase tracking-widest sticky left-0 bg-slate-50 z-10">Roll</th>
+                    <th className="px-3 py-3 font-semibold text-slate-600 text-xs uppercase tracking-widest sticky left-[60px] bg-slate-50 z-10">Student</th>
+                    {subjects.map(s => <th key={s} className="px-3 py-3 font-semibold text-slate-600 text-xs uppercase tracking-widest text-center min-w-[90px]">{s}</th>)}
+                    <th className="px-3 py-3 font-semibold text-slate-600 text-xs uppercase tracking-widest text-center">Total</th>
+                    <th className="px-3 py-3 font-semibold text-slate-600 text-xs uppercase tracking-widest text-center">Rank</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {rankings.map((r, idx) => {
+                    const s = studentMap[r.id];
+                    return (
+                      <tr key={r.id} className="hover:bg-slate-50">
+                        <td className="px-3 py-2 font-mono text-slate-800 sticky left-0 bg-white z-10">{r.roll_no}</td>
+                        <td className="px-3 py-2 font-medium text-slate-900 sticky left-[60px] bg-white z-10 whitespace-nowrap">{r.name}</td>
+                        {subjects.map(subj => {
+                          const g = s.subjects[subj];
+                          if (!g) return <td key={subj} className="px-3 py-2 text-center text-slate-300">-</td>;
+                          return (
+                            <td key={subj} className="px-2 py-2 text-center">
+                              <div className="flex items-center justify-center gap-1">
+                                <input
+                                  type="number" min="0" max="100"
+                                  value={g.marks_obtained}
+                                  onChange={e => updateMark(r.id, subj, e.target.value)}
+                                  className="w-14 px-1.5 py-1 border border-slate-200 rounded text-xs text-center focus:ring-1 focus:ring-blue-900 focus:border-transparent outline-none"
+                                  data-testid={`mark-${r.roll_no}-${subj}`}
+                                />
+                                <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded ${g.grade === 'A+' || g.grade === 'A' ? 'bg-emerald-100 text-emerald-800' : g.grade === 'B+' || g.grade === 'B' ? 'bg-blue-100 text-blue-800' : g.grade === 'C' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'}`}>
+                                  {g.grade}
+                                </span>
+                              </div>
+                            </td>
+                          );
+                        })}
+                        <td className="px-3 py-2 text-center font-bold text-slate-900">{r.total}</td>
+                        <td className="px-3 py-2 text-center">
+                          {idx < 3 ? (
+                            <span className="inline-flex items-center gap-1 text-xs font-bold text-amber-600"><Trophy size={12} />{idx + 1}</span>
+                          ) : (
+                            <span className="text-xs text-slate-500">{idx + 1}</span>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
