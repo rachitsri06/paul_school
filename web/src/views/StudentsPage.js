@@ -16,6 +16,7 @@ export default function StudentsPage() {
   const { user } = useAuth();
   const { session } = useSession();
   const isAdmin = user?.role === 'admin';
+  const canEnroll = user?.role === 'admin' || user?.role === 'teacher';
   const [students, setStudents] = useState([]);
   const [search, setSearch] = useState('');
   const [classFilter, setClassFilter] = useState('');
@@ -85,7 +86,7 @@ export default function StudentsPage() {
               onSuccess={fetchStudents}
             />
           )}
-          {isAdmin && <button onClick={() => setShowEnroll(true)} className="bg-blue-900 hover:bg-blue-800 text-white font-medium rounded-md px-4 py-2 text-sm flex items-center gap-2 transition-colors" data-testid="enroll-student-btn">
+          {canEnroll && <button onClick={() => setShowEnroll(true)} className="bg-blue-900 hover:bg-blue-800 text-white font-medium rounded-md px-4 py-2 text-sm flex items-center gap-2 transition-colors" data-testid="enroll-student-btn">
             <Plus size={16} /> Enroll Student
           </button>}
         </div>

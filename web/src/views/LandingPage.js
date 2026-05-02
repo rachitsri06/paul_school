@@ -35,7 +35,7 @@ export default function LandingPage() {
       <section className="relative pt-32 pb-20 lg:pt-48 lg:pb-32 overflow-hidden">
         <div className="absolute inset-0 bg-slate-50 -z-10" />
         <div className="absolute inset-y-0 right-0 w-1/2 bg-blue-50/50 rounded-l-full blur-3xl -z-10 transform translate-x-1/3" />
-        
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           <div className="text-center max-w-3xl mx-auto">
             <span className="inline-block py-1 px-3 rounded-full bg-blue-100 text-blue-900 text-sm font-semibold mb-6 tracking-wide uppercase">
@@ -114,9 +114,9 @@ export default function LandingPage() {
             </div>
             <div className="relative">
               <div className="aspect-square rounded-3xl overflow-hidden border-8 border-slate-800 relative z-10">
-                <img 
-                  src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=2000&auto=format&fit=crop" 
-                  alt="School Campus" 
+                <img
+                  src="https://images.unsplash.com/photo-1523050854058-8df90110c9f1?q=80&w=2000&auto=format&fit=crop"
+                  alt="School Campus"
                   className="w-full h-full object-cover"
                 />
               </div>

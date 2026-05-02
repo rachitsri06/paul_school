@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { requireAdmin, hashPassword } from '@/lib/auth';
+import { requireAdmin, hashPassword, getCurrentUser } from '@/lib/auth';
 
 export async function GET(request: Request) {
   try {
@@ -56,7 +56,10 @@ async function createParentLogin(studentRecord: any) {
 
 export async function POST(request: Request) {
   try {
-    await requireAdmin(request);
+    const user = await getCurrentUser(request);
+    if (!user || (user.role !== 'admin' && user.role !== 'teacher')) {
+      throw new Error('Teacher or Admin access required');
+    }
     const body = await request.json();
     const isBulk = Array.isArray(body);
 
