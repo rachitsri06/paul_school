@@ -6,7 +6,7 @@ export async function POST(request: Request) {
   try {
     const body = await request.json();
     const records = body.records || [];
-    const session = body.session || '2024-2025';
+    const session = body.session || '2026-2027';
 
     if (!records.length) {
       return NextResponse.json({ detail: "No records provided" }, { status: 400 });

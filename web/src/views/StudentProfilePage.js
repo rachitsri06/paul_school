@@ -18,7 +18,7 @@ export default function StudentProfilePage() {
       try {
         const { data } = await axios.get(`${API}/api/students/${id}`, { headers: headers() });
         setStudent(data);
-      } catch { navigate('/students'); }
+      } catch { navigate('/portal/students'); }
       finally { setLoading(false); }
     })();
   }, [id, navigate]);
@@ -37,7 +37,7 @@ export default function StudentProfilePage() {
 
   return (
     <div className="space-y-6 animate-fade-in" data-testid="student-profile-page">
-      <button onClick={() => navigate('/students')} className="flex items-center gap-2 text-sm text-slate-500 hover:text-blue-900 transition-colors" data-testid="back-btn">
+      <button onClick={() => navigate('/portal/students')} className="flex items-center gap-2 text-sm text-slate-500 hover:text-blue-900 transition-colors" data-testid="back-btn">
         <ArrowLeft size={16} /> Back to Students
       </button>
 

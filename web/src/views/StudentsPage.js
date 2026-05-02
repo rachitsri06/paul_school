@@ -126,26 +126,34 @@ export default function StudentsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100">
-              {students.map(s => (
-                <tr key={s.id || s._id} className="hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => navigate(`/students/${s.id || s._id}`)} data-testid={`student-row-${s.roll_no}`}>
-                  <td className="px-4 py-3 font-mono text-slate-900">{s.roll_no}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2">
-                      <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-900 flex items-center justify-center text-xs font-bold">{s.name ? s.name[0] : '?'}</div>
-                      <span className="font-medium text-slate-900">{s.name}</span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-3 text-slate-600">{s.class_name}</td>
-                  <td className="px-4 py-3 text-slate-600">{s.gender}</td>
-                  <td className="px-4 py-3 text-slate-600">{s.phone}</td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
-                      <button onClick={() => navigate(`/students/${s.id || s._id}`)} className="text-blue-900 hover:text-blue-700 text-xs font-medium" data-testid={`view-student-${s.roll_no}`}><User size={16} /></button>
-                      <button onClick={() => setShowIdCard(s)} className="text-emerald-700 hover:text-emerald-600 text-xs font-medium" data-testid={`id-card-${s.roll_no}`}><IdCard size={16} /></button>
-                    </div>
+              {students.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="px-4 py-8 text-center text-slate-500">
+                    No data available for the {session} session.
                   </td>
                 </tr>
-              ))}
+              ) : (
+                students.map(s => (
+                  <tr key={s.id || s._id} className="hover:bg-slate-50 transition-colors cursor-pointer" onClick={() => navigate(`/portal/students/${s.id || s._id}`)} data-testid={`student-row-${s.roll_no}`}>
+                    <td className="px-4 py-3 font-mono text-slate-900">{s.roll_no}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-7 h-7 rounded-full bg-blue-100 text-blue-900 flex items-center justify-center text-xs font-bold">{s.name ? s.name[0] : '?'}</div>
+                        <span className="font-medium text-slate-900">{s.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-slate-600">{s.class_name}</td>
+                    <td className="px-4 py-3 text-slate-600">{s.gender}</td>
+                    <td className="px-4 py-3 text-slate-600">{s.phone}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2" onClick={e => e.stopPropagation()}>
+                        <button onClick={() => navigate(`/portal/students/${s.id || s._id}`)} className="text-blue-900 hover:text-blue-700 text-xs font-medium" data-testid={`view-student-${s.roll_no}`}><User size={16} /></button>
+                        <button onClick={() => setShowIdCard(s)} className="text-emerald-700 hover:text-emerald-600 text-xs font-medium" data-testid={`id-card-${s.roll_no}`}><IdCard size={16} /></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>

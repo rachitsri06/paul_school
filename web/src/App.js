@@ -5,7 +5,9 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { SessionProvider } from "@/contexts/SessionContext";
 import { Toaster } from "@/components/ui/sonner";
 import Layout from "@/components/Layout";
+import LandingPage from "@/views/LandingPage";
 import LoginPage from "@/views/LoginPage";
+import TeacherRegistrationPage from "@/views/TeacherRegistrationPage";
 import DashboardPage from "@/views/DashboardPage";
 import ParentDashboardPage from "@/views/ParentDashboardPage";
 import StudentsPage from "@/views/StudentsPage";
@@ -42,7 +44,7 @@ function ProtectedRoute({ children }) {
 function AdminRoute({ children }) {
   const { user, loading } = useAuth();
   if (loading) return null;
-  if (!user || user.role !== 'admin') return <Navigate to="/" replace />;
+  if (!user || user.role !== 'admin') return <Navigate to="/portal" replace />;
   return children;
 }
 
@@ -59,8 +61,10 @@ function App() {
       <BrowserRouter>
         <Toaster position="top-right" richColors />
         <Routes>
+          <Route path="/" element={<LandingPage />} />
           <Route path="/login" element={<LoginPage />} />
-          <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+          <Route path="/teacher-join" element={<TeacherRegistrationPage />} />
+          <Route path="/portal" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<SmartDashboard />} />
             <Route path="students" element={<StudentsPage />} />
             <Route path="students/:id" element={<StudentProfilePage />} />

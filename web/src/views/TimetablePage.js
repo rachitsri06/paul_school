@@ -23,6 +23,7 @@ const EMPTY_FORM = { day: 'Monday', period: 'Period 1', subject: '', teacher: ''
 
 export default function TimetablePage() {
   const { user } = useAuth();
+  const { session } = useSession();
   const [timetable, setTimetable] = useState([]);
   const [exams, setExams] = useState([]);
   const [className, setClassName] = useState('1st');
@@ -39,8 +40,8 @@ export default function TimetablePage() {
     setLoading(true);
     try {
       const [ttRes, exRes] = await Promise.all([
-        axios.get(`${API}/api/timetable?class_name=${cn}`, { headers: headers() }),
-        axios.get(`${API}/api/timetable/exams`, { headers: headers() }),
+        axios.get(`${API}/api/timetable?class_name=${cn}&session=${session}`, { headers: headers() }),
+        axios.get(`${API}/api/timetable/exams?session=${session}`, { headers: headers() }),
       ]);
       setTimetable(ttRes.data);
       setExams(exRes.data);
@@ -48,7 +49,7 @@ export default function TimetablePage() {
     setLoading(false);
   };
 
-  useEffect(() => { fetchData(className); }, [className]);
+  useEffect(() => { fetchData(className); }, [className, session]);
 
   const periods = PERIODS;
   const getEntry = (day, period) => timetable.find(t => t.day === day && t.period === period);

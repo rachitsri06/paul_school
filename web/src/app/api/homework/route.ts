@@ -27,7 +27,7 @@ export async function POST(request: Request) {
 
     const { data: hw, error } = await supabase.from('homework').insert({
       ...body,
-      session: body.session || '2024-2025',
+      session: body.session || '2026-2027',
     }).select().single();
     if (error) throw error;
 

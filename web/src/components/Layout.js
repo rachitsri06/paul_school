@@ -11,21 +11,21 @@ import {
 const SCHOOL_LOGO = "https://customer-assets.emergentagent.com/job_school-hub-495/artifacts/ud1nrved_17104.jpg";
 
 const navItems = [
-  { to: "/", icon: LayoutDashboard, label: "Dashboard", roles: ["admin", "teacher", "parent"] },
-  { to: "/students", icon: Users, label: "Students", roles: ["admin", "teacher"] },
-  { to: "/attendance", icon: ClipboardCheck, label: "Attendance", roles: ["admin", "teacher"] },
-  { to: "/timetable", icon: Calendar, label: "Timetable", roles: ["admin", "teacher"] },
-  { to: "/grades", icon: GraduationCap, label: "Grades & Exams", roles: ["admin", "teacher"] },
-  { to: "/homework", icon: BookOpen, label: "Homework", roles: ["admin", "teacher"] },
-  { to: "/fees", icon: DollarSign, label: "Fee Management", roles: ["admin"] },
-  { to: "/fee-structure", icon: CreditCard, label: "Fee Structure", roles: ["admin"] },
-  { to: "/staff", icon: UserCog, label: "Staff & HR", roles: ["admin"] },
-  { to: "/payroll", icon: Wallet, label: "Payroll", roles: ["admin"] },
-  { to: "/communication", icon: MessageSquare, label: "Communication", roles: ["admin", "teacher"] },
-  { to: "/transport", icon: Bus, label: "Transport", roles: ["admin", "teacher"] },
-  { to: "/library", icon: Library, label: "Library", roles: ["admin", "teacher"] },
-  { to: "/reports", icon: BarChart3, label: "Reports", roles: ["admin"] },
-  { to: "/settings", icon: Settings, label: "Settings", roles: ["admin"] },
+  { to: "/portal", icon: LayoutDashboard, label: "Dashboard", roles: ["admin", "teacher", "parent"] },
+  { to: "/portal/students", icon: Users, label: "Students", roles: ["admin", "teacher"] },
+  { to: "/portal/attendance", icon: ClipboardCheck, label: "Attendance", roles: ["admin", "teacher"] },
+  { to: "/portal/timetable", icon: Calendar, label: "Timetable", roles: ["admin", "teacher"] },
+  { to: "/portal/grades", icon: GraduationCap, label: "Grades & Exams", roles: ["admin", "teacher"] },
+  { to: "/portal/homework", icon: BookOpen, label: "Homework", roles: ["admin", "teacher"] },
+  { to: "/portal/fees", icon: DollarSign, label: "Fee Management", roles: ["admin"] },
+  { to: "/portal/fee-structure", icon: CreditCard, label: "Fee Structure", roles: ["admin"] },
+  { to: "/portal/staff", icon: UserCog, label: "Staff & HR", roles: ["admin"] },
+  { to: "/portal/payroll", icon: Wallet, label: "Payroll", roles: ["admin"] },
+  { to: "/portal/communication", icon: MessageSquare, label: "Communication", roles: ["admin", "teacher"] },
+  { to: "/portal/transport", icon: Bus, label: "Transport", roles: ["admin", "teacher"] },
+  { to: "/portal/library", icon: Library, label: "Library", roles: ["admin", "teacher"] },
+  { to: "/portal/reports", icon: BarChart3, label: "Reports", roles: ["admin"] },
+  { to: "/portal/settings", icon: Settings, label: "Settings", roles: ["admin"] },
 ];
 
 export default function Layout() {
@@ -38,7 +38,7 @@ export default function Layout() {
   const filteredNavItems = navItems.filter(n => n.roles.includes(userRole));
 
   const pageTitle = navItems.find(n => {
-    if (n.to === "/") return location.pathname === "/";
+    if (n.to === "/portal") return location.pathname === "/portal" || location.pathname === "/portal/";
     return location.pathname.startsWith(n.to);
   })?.label || "Dashboard";
 
@@ -69,7 +69,7 @@ export default function Layout() {
             <NavLink
               key={to}
               to={to}
-              end={to === "/"}
+              end={to === "/portal"}
               onClick={() => setSidebarOpen(false)}
               className={({ isActive }) =>
                 `sidebar-link ${isActive ? 'active' : 'text-slate-300 hover:text-white'}`

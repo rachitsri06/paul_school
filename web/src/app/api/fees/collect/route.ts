@@ -14,7 +14,7 @@ export async function POST(request: Request) {
       payment_mode: body.payment_mode || 'Cash',
       fee_type: body.fee_type || 'Monthly',
       month: body.month,
-      session: body.session || '2024-2025',
+      session: body.session || '2026-2027',
       payment_method: body.payment_method || body.payment_mode || 'cash',
       receipt_number: body.receipt_number || `REC-${Date.now()}`,
       status: 'completed',

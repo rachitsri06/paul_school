@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState } from 'react';
 
 // List of available academic sessions (most recent first)
 export const SESSIONS = [
+  '2026-2027',
   '2025-2026',
   '2024-2025',
   '2023-2024',
@@ -10,7 +11,7 @@ export const SESSIONS = [
 ];
 
 // Current/default session
-export const CURRENT_SESSION = '2024-2025';
+export const CURRENT_SESSION = '2026-2027';
 
 const SessionContext = createContext(null);
 

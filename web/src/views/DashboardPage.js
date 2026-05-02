@@ -33,10 +33,10 @@ export default function DashboardPage() {
   if (loading) return <div className="flex items-center justify-center h-64"><div className="w-8 h-8 border-3 border-blue-900 border-t-transparent rounded-full animate-spin" /></div>;
 
   const statCards = [
-    { label: "Total Students", value: stats?.total_students || 0, icon: Users, color: "bg-blue-50 text-blue-900", iconBg: "bg-blue-100", link: "/students" },
-    { label: "Total Staff", value: stats?.total_staff || 0, icon: UserCog, color: "bg-emerald-50 text-emerald-800", iconBg: "bg-emerald-100", link: "/staff" },
-    { label: "Fees Collected", value: `Rs ${(stats?.total_fees_collected || 0).toLocaleString()}`, icon: DollarSign, color: "bg-amber-50 text-amber-800", iconBg: "bg-amber-100", link: "/fees" },
-    { label: "Today's Attendance", value: `${stats?.attendance_rate || 0}%`, icon: ClipboardCheck, color: "bg-violet-50 text-violet-800", iconBg: "bg-violet-100", link: "/attendance" },
+    { label: "Total Students", value: stats?.total_students || 0, icon: Users, color: "bg-blue-50 text-blue-900", iconBg: "bg-blue-100", link: "/portal/students" },
+    { label: "Total Staff", value: stats?.total_staff || 0, icon: UserCog, color: "bg-emerald-50 text-emerald-800", iconBg: "bg-emerald-100", link: "/portal/staff" },
+    { label: "Fees Collected", value: `Rs ${(stats?.total_fees_collected || 0).toLocaleString()}`, icon: DollarSign, color: "bg-amber-50 text-amber-800", iconBg: "bg-amber-100", link: "/portal/fees" },
+    { label: "Today's Attendance", value: `${stats?.attendance_rate || 0}%`, icon: ClipboardCheck, color: "bg-violet-50 text-violet-800", iconBg: "bg-violet-100", link: "/portal/attendance" },
   ];
 
   const chartData = (stats?.class_attendance || []).map(c => ({
@@ -118,22 +118,18 @@ export default function DashboardPage() {
       </div>
 
       {/* Quick Stats Row */}
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
         <div className="bg-white rounded-lg border border-slate-200 p-4 text-center">
           <p className="text-xs text-slate-500 uppercase tracking-widest font-semibold">Present Today</p>
           <p className="text-xl font-bold text-emerald-600 mt-1">{stats?.present_today || 0}</p>
         </div>
         <div className="bg-white rounded-lg border border-slate-200 p-4 text-center">
           <p className="text-xs text-slate-500 uppercase tracking-widest font-semibold">Absent Today</p>
-          <p className="text-xl font-bold text-red-500 mt-1">{(stats?.total_today_records || 0) - (stats?.present_today || 0)}</p>
+          <p className="text-xl font-bold text-red-500 mt-1">{(stats?.total_students || 0) - (stats?.present_today || 0)}</p>
         </div>
         <div className="bg-white rounded-lg border border-slate-200 p-4 text-center">
-          <p className="text-xs text-slate-500 uppercase tracking-widest font-semibold">Classes</p>
-          <p className="text-xl font-bold text-blue-900 mt-1">10</p>
-        </div>
-        <div className="bg-white rounded-lg border border-slate-200 p-4 text-center">
-          <p className="text-xs text-slate-500 uppercase tracking-widest font-semibold">Sections</p>
-          <p className="text-xl font-bold text-blue-900 mt-1">2</p>
+          <p className="text-xs text-slate-500 uppercase tracking-widest font-semibold">Active Classes</p>
+          <p className="text-xl font-bold text-blue-900 mt-1">{stats?.class_attendance?.length || 0}</p>
         </div>
       </div>
     </div>

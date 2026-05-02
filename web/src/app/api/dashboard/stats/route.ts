@@ -10,23 +10,40 @@ export async function GET(request: Request) {
       return NextResponse.json({ detail: "Not authenticated" }, { status: 401 });
     }
 
-    const { count: totalStudents } = await supabase.from('students').select('*', { count: 'exact', head: true });
+    const { searchParams } = new URL(request.url);
+    const session = searchParams.get('session');
+
+    let studentsQuery = supabase.from('students').select('*', { count: 'exact', head: true });
+    if (session) studentsQuery = studentsQuery.eq('session', session);
+    const { count: totalStudents } = await studentsQuery;
+
     const { count: totalStaff } = await supabase.from('staff').select('*', { count: 'exact', head: true });
 
     const today = new Date().toISOString().split('T')[0];
-    const { count: presentToday } = await supabase.from('attendance').select('*', { count: 'exact', head: true }).eq('date', today).eq('status', 'present');
+    let attendanceTodayQuery = supabase.from('attendance').select('*', { count: 'exact', head: true }).eq('date', today).eq('status', 'present');
+    if (session) attendanceTodayQuery = attendanceTodayQuery.eq('session', session);
+    const { count: presentToday } = await attendanceTodayQuery;
 
     const { count: totalBooks } = await supabase.from('library_books').select('*', { count: 'exact', head: true });
-    const { count: pendingFees } = await supabase.from('fee_payments').select('*', { count: 'exact', head: true }).eq('status', 'pending');
+    
+    let pendingFeesQuery = supabase.from('fee_payments').select('*', { count: 'exact', head: true }).eq('status', 'pending');
+    if (session) pendingFeesQuery = pendingFeesQuery.eq('session', session);
+    const { count: pendingFees } = await pendingFeesQuery;
 
-    const { data: recentAttendance } = await supabase.from('attendance').select('*').order('created_at', { ascending: false }).limit(5);
+    let recentAttendanceQuery = supabase.from('attendance').select('*').order('created_at', { ascending: false }).limit(5);
+    if (session) recentAttendanceQuery = recentAttendanceQuery.eq('session', session);
+    const { data: recentAttendance } = await recentAttendanceQuery;
 
     // Get true total fees collected
-    const { data: feePayments } = await supabase.from('fee_payments').select('amount').eq('status', 'paid');
+    let feePaymentsQuery = supabase.from('fee_payments').select('amount').eq('status', 'paid');
+    if (session) feePaymentsQuery = feePaymentsQuery.eq('session', session);
+    const { data: feePayments } = await feePaymentsQuery;
     const totalFeesCollected = (feePayments || []).reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
 
     // Group students by class to populate chart data map
-    const { data: allStudents } = await supabase.from('students').select('class_name');
+    let allStudentsQuery = supabase.from('students').select('class_name');
+    if (session) allStudentsQuery = allStudentsQuery.eq('session', session);
+    const { data: allStudents } = await allStudentsQuery;
     const classCountMap: Record<string, number> = {};
     (allStudents || []).forEach(s => {
       const cls = s.class_name || 'Unassigned';

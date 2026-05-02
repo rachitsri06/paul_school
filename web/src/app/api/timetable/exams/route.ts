@@ -6,9 +6,11 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const class_name = searchParams.get('class_name') || '';
+    const session = searchParams.get('session') || '';
 
     let query = supabase.from('exams').select('*');
     if (class_name) query = query.eq('class_name', class_name);
+    if (session) query = query.eq('session', session);
 
     const { data, error } = await query.order('exam_date', { ascending: true });
     if (error) throw error;
