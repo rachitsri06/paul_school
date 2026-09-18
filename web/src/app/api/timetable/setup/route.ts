@@ -1,9 +1,11 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { requireAdmin } from '@/lib/auth';
 
-export async function POST() {
+export async function POST(request: Request) {
   try {
+    await requireAdmin(request);
     // Create timetable table if it doesn't exist
     const { error } = await supabase.rpc('create_timetable_if_not_exists').maybeSingle().catch(() => ({ error: null }));
 
@@ -28,6 +30,6 @@ export async function POST() {
 
     return NextResponse.json({ message: 'timetable table is ready ✅' });
   } catch (error: any) {
-    return NextResponse.json({ detail: error.message }, { status: 500 });
+    return NextResponse.json({ detail: error.message }, { status: error.message.includes('Admin') ? 403 : 500 });
   }
 }

@@ -21,8 +21,8 @@ export async function POST(request: Request) {
         token: access
       });
 
-      response.cookies.set('access_token', access, { httpOnly: true, secure: false, sameSite: 'lax', maxAge: 7200, path: '/' });
-      response.cookies.set('refresh_token', refresh, { httpOnly: true, secure: false, sameSite: 'lax', maxAge: 604800, path: '/' });
+      response.cookies.set('access_token', access, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 7200, path: '/' });
+      response.cookies.set('refresh_token', refresh, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 604800, path: '/' });
 
       return response;
     }
@@ -49,8 +49,8 @@ export async function POST(request: Request) {
       children_ids: user.children_ids || []
     });
 
-    response.cookies.set('access_token', access, { httpOnly: true, secure: false, sameSite: 'lax', maxAge: 7200, path: '/' });
-    response.cookies.set('refresh_token', refresh, { httpOnly: true, secure: false, sameSite: 'lax', maxAge: 604800, path: '/' });
+    response.cookies.set('access_token', access, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 7200, path: '/' });
+    response.cookies.set('refresh_token', refresh, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 604800, path: '/' });
 
     return response;
   } catch (error: any) {

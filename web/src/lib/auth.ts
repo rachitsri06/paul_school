@@ -2,10 +2,13 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { supabase } from './supabase';
 
-export const JWT_SECRET = process.env.JWT_SECRET || 'fallback_secret';
+if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
+  throw new Error('JWT_SECRET environment variable must be set in production');
+}
+export const JWT_SECRET = process.env.JWT_SECRET || 'insecure-dev-only-secret-do-not-use-in-production';
 export const JWT_ALGORITHM = 'HS256';
-export const MASTER_ADMIN_EMAIL = 'admin@paul.com';
-export const MASTER_ADMIN_PASSWORD = 'Admin@123';
+export const MASTER_ADMIN_EMAIL = process.env.MASTER_ADMIN_EMAIL || 'admin@paul.com';
+export const MASTER_ADMIN_PASSWORD = process.env.MASTER_ADMIN_PASSWORD || 'Admin@123';
 export const MASTER_ADMIN_ID = '00000000-0000-0000-0000-000000000000';
 
 export const MASTER_USER = {
@@ -81,6 +84,14 @@ export async function requireAdmin(request: Request) {
   const user = await getCurrentUser(request);
   if (!user || user.role !== 'admin') {
     throw new Error('Admin access required');
+  }
+  return user;
+}
+
+export async function requireStaff(request: Request) {
+  const user = await getCurrentUser(request);
+  if (!user || (user.role !== 'admin' && user.role !== 'teacher')) {
+    throw new Error('Admin or Teacher access required');
   }
   return user;
 }

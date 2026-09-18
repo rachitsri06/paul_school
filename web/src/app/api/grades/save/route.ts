@@ -1,9 +1,11 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { requireStaff } from '@/lib/auth';
 
 export async function POST(request: Request) {
   try {
+    await requireStaff(request);
     const body = await request.json();
     const records = body.records || body.grades || (Array.isArray(body) ? body : [body]);
 
@@ -12,6 +14,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ message: "Grades saved", count: data.length });
   } catch (error: any) {
-    return NextResponse.json({ detail: error.message }, { status: 500 });
+    return NextResponse.json({ detail: error.message }, { status: error.message.includes('Admin') ? 403 : 500 });
   }
 }

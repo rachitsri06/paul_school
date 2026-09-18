@@ -1,15 +1,22 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
-import { hashPassword, createAccessToken, createRefreshToken } from '@/lib/auth';
+import { hashPassword, createAccessToken, createRefreshToken, requireAdmin } from '@/lib/auth';
+
+const ALLOWED_ROLES = ['admin', 'teacher', 'parent'];
 
 export async function POST(request: Request) {
   try {
+    // Only an existing admin may create new logins through this endpoint.
+    await requireAdmin(request);
+
     const body = await request.json();
     const email = body.email?.toLowerCase().trim();
     if (!email || !body.password || !body.name) {
       return NextResponse.json({ detail: "Missing fields" }, { status: 400 });
     }
+
+    const role = ALLOWED_ROLES.includes(body.role) ? body.role : 'teacher';
 
     const { data: existing } = await supabase.from('users').select('id').eq('email', email).single();
     if (existing) {
@@ -21,7 +28,7 @@ export async function POST(request: Request) {
       email,
       password_hash: hashed,
       name: body.name,
-      role: body.role || 'teacher',
+      role,
     }).select().single();
 
     if (error) throw error;
@@ -37,11 +44,11 @@ export async function POST(request: Request) {
       token: access
     });
 
-    response.cookies.set('access_token', access, { httpOnly: true, secure: false, sameSite: 'lax', maxAge: 7200, path: '/' });
-    response.cookies.set('refresh_token', refresh, { httpOnly: true, secure: false, sameSite: 'lax', maxAge: 604800, path: '/' });
+    response.cookies.set('access_token', access, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 7200, path: '/' });
+    response.cookies.set('refresh_token', refresh, { httpOnly: true, secure: process.env.NODE_ENV === 'production', sameSite: 'lax', maxAge: 604800, path: '/' });
 
     return response;
   } catch (error: any) {
-    return NextResponse.json({ detail: error.message }, { status: 500 });
+    return NextResponse.json({ detail: error.message }, { status: error.message.includes('Admin') ? 403 : 500 });
   }
 }
