@@ -1,9 +1,11 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { requireAdmin } from '@/lib/auth';
 
 export async function GET(request: Request) {
   try {
+    await requireAdmin(request);
     const { searchParams } = new URL(request.url);
     const student_id = searchParams.get('student_id') || '';
     const session = searchParams.get('session') || '';
@@ -17,6 +19,6 @@ export async function GET(request: Request) {
 
     return NextResponse.json(data || []);
   } catch (error: any) {
-    return NextResponse.json({ detail: error.message }, { status: 500 });
+    return NextResponse.json({ detail: error.message }, { status: error.message.includes('Admin') ? 403 : 500 });
   }
 }

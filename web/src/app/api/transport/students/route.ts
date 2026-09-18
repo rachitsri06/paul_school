@@ -1,10 +1,12 @@
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { requireStaff } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
+    await requireStaff(request);
     // Only return students who actually take the bus/transport
     const { data: students, error } = await supabase
       .from('students')
@@ -16,6 +18,6 @@ export async function GET() {
     
     return NextResponse.json(students || []);
   } catch (error: any) {
-    return NextResponse.json({ detail: error.message }, { status: 500 });
+    return NextResponse.json({ detail: error.message }, { status: error.message.includes('Admin') ? 403 : 500 });
   }
 }

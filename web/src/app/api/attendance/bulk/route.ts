@@ -1,9 +1,11 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { requireStaff } from '@/lib/auth';
 
 export async function POST(request: Request) {
   try {
+    await requireStaff(request);
     const body = await request.json();
     const records = body.records || [];
     const session = body.session || '2026-2027';
@@ -33,6 +35,6 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ message: `${data.length} records saved`, count: data.length, present, absent, late, leave });
   } catch (error: any) {
-    return NextResponse.json({ detail: error.message }, { status: 500 });
+    return NextResponse.json({ detail: error.message }, { status: error.message.includes('Admin') ? 403 : 500 });
   }
 }

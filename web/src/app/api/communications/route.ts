@@ -1,21 +1,24 @@
 export const dynamic = 'force-dynamic';
 import { NextResponse } from 'next/server';
 import { supabase } from '@/lib/supabase';
+import { requireStaff } from '@/lib/auth';
 
 export async function GET(request: Request) {
   try {
+    await requireStaff(request);
     // Legacy mapping uses sent_at or created_at. We gracefully sort without crashing.
     const { data, error } = await supabase.from('communications').select('*').order('id', { ascending: false }).limit(100);
     if (error) throw error;
 
     return NextResponse.json(data || []);
   } catch (error: any) {
-    return NextResponse.json({ detail: error.message }, { status: 500 });
+    return NextResponse.json({ detail: error.message }, { status: error.message.includes('Admin') ? 403 : 500 });
   }
 }
 
 export async function POST(request: Request) {
   try {
+    await requireStaff(request);
     const body = await request.json();
     const { type, recipient, message } = body; // Dropped sender & title to avoid fatal missing column errors
 
@@ -61,6 +64,6 @@ export async function POST(request: Request) {
     return NextResponse.json(record);
   } catch (error: any) {
     console.error("Comm API Error:", error.message);
-    return NextResponse.json({ detail: error.message }, { status: 500 });
+    return NextResponse.json({ detail: error.message }, { status: error.message.includes('Admin') ? 403 : 500 });
   }
 }
