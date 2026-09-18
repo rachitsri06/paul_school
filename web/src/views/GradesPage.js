@@ -19,6 +19,7 @@ export default function GradesPage() {
 
   useEffect(() => {
     (async () => {
+      try {
         const [gradesRes, studentsRes] = await Promise.all([
           axios.get(`${API}/api/grades?class_name=${className}&exam=${exam}&session=${session}`, { headers: headers() }),
           axios.get(`${API}/api/students?class_name=${className}&session=${session}`, { headers: headers() })

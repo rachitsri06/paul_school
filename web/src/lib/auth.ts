@@ -2,10 +2,14 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import { supabase } from './supabase';
 
-if (!process.env.JWT_SECRET && process.env.NODE_ENV === 'production') {
-  throw new Error('JWT_SECRET environment variable must be set in production');
+function getJwtSecret(): string {
+  const secret = process.env.JWT_SECRET;
+  if (secret) return secret;
+  if (process.env.NODE_ENV === 'production') {
+    throw new Error('JWT_SECRET environment variable must be set in production');
+  }
+  return 'insecure-dev-only-secret-do-not-use-in-production';
 }
-export const JWT_SECRET = process.env.JWT_SECRET || 'insecure-dev-only-secret-do-not-use-in-production';
 export const JWT_ALGORITHM = 'HS256';
 export const MASTER_ADMIN_EMAIL = process.env.MASTER_ADMIN_EMAIL || 'admin@paul.com';
 export const MASTER_ADMIN_PASSWORD = process.env.MASTER_ADMIN_PASSWORD || 'Admin@123';
@@ -31,7 +35,7 @@ export async function verifyPassword(plain: string, hashed: string) {
 export function createAccessToken(userId: string, email: string) {
   return jwt.sign(
     { sub: userId, email, type: 'access' },
-    JWT_SECRET,
+    getJwtSecret(),
     { expiresIn: '2h', algorithm: JWT_ALGORITHM }
   );
 }
@@ -39,7 +43,7 @@ export function createAccessToken(userId: string, email: string) {
 export function createRefreshToken(userId: string) {
   return jwt.sign(
     { sub: userId, type: 'refresh' },
-    JWT_SECRET,
+    getJwtSecret(),
     { expiresIn: '7d', algorithm: JWT_ALGORITHM }
   );
 }
@@ -61,7 +65,7 @@ export async function getCurrentUser(request: Request) {
   }
 
   try {
-    const payload = jwt.verify(token, JWT_SECRET, { algorithms: [JWT_ALGORITHM as jwt.Algorithm] }) as jwt.JwtPayload;
+    const payload = jwt.verify(token, getJwtSecret(), { algorithms: [JWT_ALGORITHM as jwt.Algorithm] }) as jwt.JwtPayload;
     if (payload.type !== 'access') {
       return null;
     }
